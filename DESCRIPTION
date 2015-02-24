@@ -1,11 +1,11 @@
-Package: schedulr
 Type: Package
+Package: schedulr
+Version: 0.0.0.9000
 Title: Schedule jobs on machines
 Description: Schedule jobs on machines
 Authors@R: person("Niranjan", "Vissa", email = "niranjanv+schedulr@gmail.com",
   role = c("aut", "cre"))
-Version: 0.0.0.9000
-License: None
 URL: https://github.com/niranjv/schedulr
 BugReports: https://github.com/niranjv/schedulr/issues
+License: None
 Suggests: testthat
