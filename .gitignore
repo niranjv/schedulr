@@ -9,7 +9,7 @@
 
 # RStudio files
 .Rproj.user/
-.Rproj
+*.Rproj
 
 # packrat files
 packrat/lib*/
