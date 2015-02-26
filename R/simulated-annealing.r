@@ -245,6 +245,13 @@ get.temperature <- function(max.temp, max.iter, cur.iter) {
 #' Find optimal schedule
 #'
 #' Want an assignment with >= 95% probability of completing job by the deadline with the lowest cost
+#'
+#' @param job Array of integers representing sizes of tasks in job
+#' @param deadline Time (in seconds) by which job must be completed (integer)
+#' @param cluster.instance.type Instance type of cluster (string). All instances in the cluster are assumed to have the same instance type
+#' @param cluster.size Integer representing the number of instances in the cluster
+#' @param max.iter Max number of iterations to use to find the optimal assignment (integer)
+#' @param max.temp Max temperature to use in the simulated annealing process (flaot)
 #' @return A list representing the optimal assignment that could be found under the given constraints
 #' @export
 #' @examples
