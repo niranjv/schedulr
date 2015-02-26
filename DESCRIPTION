@@ -10,4 +10,6 @@ BugReports: https://github.com/niranjv/schedulr/issues
 License: MIT + file LICENSE
 Date: 2015-02-24
 LazyData: true
+Depends:
+    R (>= 2.10)
 Suggests: testthat
