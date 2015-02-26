@@ -13,7 +13,7 @@ get.runtimes(instance.type)
 Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
 }
 \description{
-Get training set runtimes for instance type
+This function is called for its side-effect
 }
 \examples{
 get.runtimes('m3xlarge')
