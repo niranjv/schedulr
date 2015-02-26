@@ -5,6 +5,8 @@
 
 #' Get training set runtimes for instance type
 #'
+#' This function is called for its side-effect
+#'
 #' @param instance.type Instance type of cluster (string). All instances in the cluster are assumed to be of the same type
 #' @return Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
 #' @export
@@ -12,13 +14,8 @@
 #' get.runtimes('m3xlarge')
 get.runtimes <- function(instance.type) {
 
-	trainingset.runtimes.file <- system.file('extdata', paste(instance.type, '_runtimes.csv', sep=''), package='schedulr')
-	trainingset.runtimes <- read.csv(trainingset.runtimes.file, header=T, row.names=1)
-
-	# varname <- paste('runtimes.', instance.type, sep='');
-	# var <- get(varname)
-
-	invisible(trainingset.runtimes)
+  dataset.name <- paste(instance.type, '.runtimes.expdist', sep='')
+  data(list=dataset.name)
 
 } # end function - get.runtimes
 
