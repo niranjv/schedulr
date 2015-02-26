@@ -244,7 +244,7 @@ get.temperature <- function(max.temp, max.iter, cur.iter) {
 
 #' Find optimal schedule
 #'
-#' Want an assignment with >= 95% probability of completing job by the deadline with the lowest cost
+#' Want an assignment with >= .95 probability of completing job by the deadline with the lowest makespan (cost)
 #'
 #' @param job Array of integers representing sizes of tasks in job
 #' @param deadline Time (in seconds) by which job must be completed (integer)

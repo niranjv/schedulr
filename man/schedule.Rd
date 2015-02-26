@@ -6,6 +6,19 @@
 \usage{
 schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
 }
+\arguments{
+\item{job}{Array of integers representing sizes of tasks in job}
+
+\item{deadline}{Time (in seconds) by which job must be completed (integer)}
+
+\item{cluster.instance.type}{Instance type of cluster (string). All instances in the cluster are assumed to have the same instance type}
+
+\item{cluster.size}{Integer representing the number of instances in the cluster}
+
+\item{max.iter}{Max number of iterations to use to find the optimal assignment (integer)}
+
+\item{max.temp}{Max temperature to use in the simulated annealing process (flaot)}
+}
 \value{
 A list representing the optimal assignment that could be found under the given constraints
 }
