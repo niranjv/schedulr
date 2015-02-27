@@ -1,6 +1,4 @@
-context("Test Simulated Annealing functions")
-
-expect_equal(1,1)
+context("Test get.initial.assignment()")
 
 
 test_that("get.initial.assignment validates cluster.size correctly", {
