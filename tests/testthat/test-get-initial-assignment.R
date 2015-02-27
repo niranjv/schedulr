@@ -20,7 +20,7 @@ test_that("get.initial.assignment validates tasks correctly", {
 })
 
 
-test_that("get.initial.assignment returns the correct value", {
+test_that("get.initial.assignment returns the expected value", {
   assignment <- get.initial.assignment(1, 10)
   expect_is(assignment, 'list')
   expect_equal(length(assignment), 1)
