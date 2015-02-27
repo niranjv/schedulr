@@ -49,6 +49,22 @@ Version: 1.17.1
 Requires: bitops
 Hash: bb5fdc266f716b8a289a4f92007d53e3
 
+Package: covr
+Source: github
+Version: 0.2.0.9000
+Requires: crayon, devtools, httr, jsonlite, rex, testthat
+Hash: eff2d0e4a41d46854c2eb3c3a0eea995961b4dd3
+GithubRepo: covr
+GithubUsername: jimhester
+GithubRef: master
+GithubSha1: eff2d0e4a41d46854c2eb3c3a0eea995961b4dd3
+
+Package: crayon
+Source: CRAN
+Version: 1.1.0
+Requires: memoise
+Hash: 191e66d7e9cac7be6c779ca44bf8e194
+
 Package: devtools
 Source: CRAN
 Version: 1.7.0
@@ -137,6 +153,12 @@ Package: packrat
 Source: CRAN
 Version: 0.4.3
 Hash: 16c72d5c802629fae5a4abca901e0199
+
+Package: rex
+Source: CRAN
+Version: 0.2.0
+Requires: lazyeval, magrittr
+Hash: f7de79775cb0cbc6a4f8174704c7401e
 
 Package: rmarkdown
 Source: CRAN
