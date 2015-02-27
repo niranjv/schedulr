@@ -33,6 +33,17 @@ get.runtimes <- function(instance.type) {
 #' init <- get.initial.assignment(10, seq(1:30))
 get.initial.assignment <- function(cluster.size, tasks) {
 
+  # Validate args
+  if(missing(cluster.size)) { stop('Missing required argument: cluster.size') }
+  if(length(cluster.size) != 1) { stop('Invalid argument length: cluster.size must be an integer') }
+  if(!is.numeric(cluster.size) || cluster.size != floor(cluster.size)) { stop('Non-integer argument: cluster.size') }
+  if(cluster.size <= 0) { stop('Invalid argument: cluster.size must be > 0') }
+
+  if(missing(tasks)) { stop('Missing required argument: tasks') }
+  if(length(tasks) == 0) { stop('Invalid argument length: Must specify at least 1 task to schedule') }
+  if(!is.numeric(tasks)) { stop('Non-numeric argument: Tasks sizes must be valid numbers') }
+  if(any(tasks <= 0)) { stop('Invalid argument: Tasks sizes must be > 0') }
+
 	assignment <- vector('list', cluster.size)
 	sorted.tasks <- sort(tasks)
 
