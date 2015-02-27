@@ -23,7 +23,7 @@ schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
 A list representing the optimal assignment that could be found under the given constraints
 }
 \description{
-Want an assignment with >= 95% probability of completing job by the deadline with the lowest cost
+Want an assignment with >= .95 probability of completing job by the deadline with the lowest makespan (cost)
 }
 \examples{
 job <- seq(1:30)
