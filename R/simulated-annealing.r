@@ -152,23 +152,41 @@ get.neighbor.single.exchange <- function(assignment) {
 #' assignment <- get.initial.assignment(10, seq(1:30))
 #' neighbor <- get.neighbor.single.transfer(assignment)
 get.neighbor.single.transfer <- function(assignment) {
+	
+	# Validate args
+	if(missing(assignment)) { stop("Missing required argument: assignment") }
+	if(!is.list(assignment)) { stop("Invalid argument type: assignment must be a list") }
+	if(length(assignment) == 0) { stop("Invalid argument length: assignment must contain at least 1 instance") }
+	if(!is.numeric(unlist(assignment))) { stop("Non-numeric argument: tasks sizes must be valid numbers") }
+	if(sum((unlist(assignment) <= 0) > 0)) { stop("Invalid argument: tasks sizes must be > 0") }
+	
+	# Cannot move jobs between instances when there is only 1 instance
+	num.instances <- length(assignment)
+	if(num.instances == 1) { return(assignment) }
 
-	# instance1 will donate a task to instance2
-	instances.idx <- sample(length(assignment), 2, replace=F)
-	instance1.idx <- instances.idx[1]
-	instance2.idx <- instances.idx[2]
+	# Get all instances with jobs
+	num.jobs.in.instances <- lapply(assignment, length)
+	idx.all.instances.with.jobs <- which(num.jobs.in.instances > 0)
+	
+	# Sample an instance from this list
+	idx.instance.with.jobs <- sample(idx.all.instances.with.jobs, 1)
+	
+	# Remove a task from this instance
+	num.jobs.in.instance <- length(assignment[[idx.instance.with.jobs]])
+	task.idx <- sample(1:num.jobs.in.instance, 1)
+	task <- assignment[[idx.instance.with.jobs]][task.idx]
+	assignment[[idx.instance.with.jobs]] = assignment[[idx.instance.with.jobs]][-task.idx]
+	num.remaining.jobs.in.instance <- length(assignment[[idx.instance.with.jobs]])
+	if (num.remaining.jobs.in.instance == 0) assignment[idx.instance.with.jobs] <- list(NULL)
+	
+	
+	# Get another instance
+	idx.remaining.instances <- (1:length(assignment))[-idx.instance.with.jobs]
+	if (length(idx.remaining.instances) == 1) { idx.instance2 <- idx.remaining.instances }
+	else { idx.instance2 <- sample(c(idx.remaining.instances), 1) }
 
-	# get index of task to remove from instance1
-	task.idx <- sample(1:length(assignment[[instance1.idx]]), 1)
-
-	# save the task
-	task <- assignment[[instance1.idx]][task.idx]
-
-	# remove the task from instance1
-	assignment[[instance1.idx]] = assignment[[instance1.idx]][-task.idx]
-
-	# add the removed task to instance2
-	assignment[[instance2.idx]] <- c(assignment[[instance2.idx]], task)
+	# Move the task to this instance
+	assignment[[idx.instance2]] <- c(assignment[[idx.instance2]], task)
 
 	return(assignment)
 
