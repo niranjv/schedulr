@@ -90,7 +90,7 @@ get.neighbor <- function(assignment) {
 	neighbor <- list()
 	if (neighbor.generation.method == 'single.transfer') {
 		# cat('single.transfer \n')
-		neighbor <- get.neighbor.single.transfer(assignment)
+		neighbor <- get.neighbor.by.moving.tasks(assignment, 1)
 	} else if (neighbor.generation.method == 'single.exchange') {
 		# cat('single.exchange \n')
 		neighbor <- get.neighbor.single.exchange(assignment)
@@ -146,51 +146,68 @@ get.neighbor.single.exchange <- function(assignment) {
 #' Randomly select 2 instances in the cluster. Randomly select a task from one of the instances and move it to the other instance. Simple random sampling without replacement is used in both sampling stages.
 #'
 #' @param assignment A list representing the assignment for which a neighbor is desired
+#' @param num.tasks Integer representing the number of tasks to be moved from 1 instance to another
 #' @return A list representing the neighboring assignment
 #' @export
 #' @examples
 #' assignment <- get.initial.assignment(10, seq(1:30))
-#' neighbor <- get.neighbor.single.transfer(assignment)
-get.neighbor.single.transfer <- function(assignment) {
-	
-	# Validate args
-	if(missing(assignment)) { stop("Missing required argument: assignment") }
-	if(!is.list(assignment)) { stop("Invalid argument type: assignment must be a list") }
-	if(length(assignment) == 0) { stop("Invalid argument length: assignment must contain at least 1 instance") }
-	if(!is.numeric(unlist(assignment))) { stop("Non-numeric argument: tasks sizes must be valid numbers") }
-	if(sum((unlist(assignment) <= 0) > 0)) { stop("Invalid argument: tasks sizes must be > 0") }
-	
-	# Cannot move jobs between instances when there is only 1 instance
-	num.instances <- length(assignment)
-	if(num.instances == 1) { return(assignment) }
+#' neighbor <- get.neighbor.by.moving.tasks(assignment, 1)
+get.neighbor.by.moving.tasks <- function(assignment, num.tasks) {
 
-	# Get all instances with jobs
-	num.jobs.in.instances <- lapply(assignment, length)
-	idx.all.instances.with.jobs <- which(num.jobs.in.instances > 0)
-	
-	# Sample an instance from this list
-	idx.instance.with.jobs <- sample(idx.all.instances.with.jobs, 1)
-	
-	# Remove a task from this instance
-	num.jobs.in.instance <- length(assignment[[idx.instance.with.jobs]])
-	task.idx <- sample(1:num.jobs.in.instance, 1)
-	task <- assignment[[idx.instance.with.jobs]][task.idx]
-	assignment[[idx.instance.with.jobs]] = assignment[[idx.instance.with.jobs]][-task.idx]
-	num.remaining.jobs.in.instance <- length(assignment[[idx.instance.with.jobs]])
-	if (num.remaining.jobs.in.instance == 0) assignment[idx.instance.with.jobs] <- list(NULL)
-	
-	
-	# Get another instance
-	idx.remaining.instances <- (1:length(assignment))[-idx.instance.with.jobs]
-	if (length(idx.remaining.instances) == 1) { idx.instance2 <- idx.remaining.instances }
-	else { idx.instance2 <- sample(c(idx.remaining.instances), 1) }
+  # Validate args
+  if(missing(assignment)) { stop("Missing required argument: assignment") }
+  if(!is.list(assignment)) { stop("Invalid argument type: assignment must be a list") }
+  if(length(assignment) == 0) { stop("Invalid argument length: assignment must contain at least 1 instance") }
+  if(!is.numeric(unlist(assignment))) { stop("Non-numeric argument: tasks sizes must be valid numbers") }
+  if(sum((unlist(assignment) <= 0) > 0)) { stop("Invalid argument: tasks sizes must be > 0") }
 
-	# Move the task to this instance
-	assignment[[idx.instance2]] <- c(assignment[[idx.instance2]], task)
+  if(missing(num.tasks)) { stop("Missing required argument: num.tasks") }
+  if(length(num.tasks) > 1) { stop("Invalid argument type: num.tasks must be an single number") }
+  if(!is.numeric(num.tasks) || num.tasks != floor(num.tasks)) { stop('Non-integer argument: num.tasks') }
+  if(num.tasks <= 0) { stop("Invalid argument: num.tasks must be > 0") }
 
-	return(assignment)
 
-} # end sub - get.neighbor.single.transfer
+  # Cannot move tasks between instances when there is only 1 instance
+  num.instances <- length(assignment)
+  if(num.instances == 1) { return(assignment) }
+
+  # Cannot move more tasks than available
+  num.tasks.available <- length(unlist(assignment))
+  if (num.tasks.available < num.tasks) {
+    msg <- paste('Invalid argument: Cannot move', num.tasks, 'tasks when only', num.tasks.available, 'tasks are available')
+    stop(msg)
+  } # end if - move more tasks than available?
+
+
+  # Get all instances with at least num.tasks
+  num.tasks.in.instances <- lapply(assignment, length)
+  idx.all.instances.with.tasks <- which(num.tasks.in.instances >= num.tasks)
+  if (length(idx.all.instances.with.tasks) == 0) { stop("Invalid argument: No instance has ", num.tasks, ' tasks to move') }
+
+  # Sample an instance from this list
+  idx.idx.instance.with.tasks <- sample(1:length(idx.all.instances.with.tasks), 1)
+  idx.instance.with.tasks <- idx.all.instances.with.tasks[idx.idx.instance.with.tasks]
+
+  # Remove a task from this instance
+  num.tasks.in.instance <- length(assignment[[idx.instance.with.tasks]])
+  idx.tasks <- sample(1:num.tasks.in.instance, num.tasks)
+  tasks <- assignment[[idx.instance.with.tasks]][idx.tasks]
+  assignment[[idx.instance.with.tasks]] = assignment[[idx.instance.with.tasks]][-idx.tasks]
+  num.remaining.tasks.in.instance <- length(assignment[[idx.instance.with.tasks]])
+  if (num.remaining.tasks.in.instance == 0) assignment[idx.instance.with.tasks] <- list(NULL)
+
+
+  # Get another instance
+  idx.remaining.instances <- (1:length(assignment))[-idx.instance.with.tasks]
+  if (length(idx.remaining.instances) == 1) { idx.instance2 <- idx.remaining.instances }
+  else { idx.instance2 <- sample(c(idx.remaining.instances), 1) }
+
+  # Move the task to this instance
+  assignment[[idx.instance2]] <- c(assignment[[idx.instance2]], tasks)
+
+  return(assignment)
+
+} # end sub - get.neighbor.by.moving.tasks
 
 
 
@@ -318,4 +335,3 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
 	print(cur.assignment)
 
 } # end function - schedule
-
