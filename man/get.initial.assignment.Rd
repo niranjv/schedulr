@@ -4,18 +4,18 @@
 \alias{get.initial.assignment}
 \title{Get initial assignment of jobs to instances in a cluster}
 \usage{
-get.initial.assignment(cluster.size, tasks)
+get.initial.assignment(cluster.size, task.sizes)
 }
 \arguments{
-\item{cluster.size}{Integer representing the number of instances in the cluster}
+\item{cluster.size}{Number of instances in the cluster (+ve integer)}
 
-\item{tasks}{Array of integers representing the sizes of tasks in the job}
+\item{task.sizes}{Array of task sizes (positive reals)}
 }
 \value{
-A list containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
+List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
 }
 \description{
-Tasks are assigned to instances in decreasing order of longest processing time first (i.e., Longest Expected Processing Time First rule). Since task runtime is approximately proportional to task size, ordering tasks by runtime is equivalent to ordering tasks by size. The largest task is assigned to the first available machine, the 2nd largest task is assigned to the next available machine and so on.
+Get initial assignment of jobs to instances in a cluster
 }
 \examples{
 init <- get.initial.assignment(10, seq(1:30))
