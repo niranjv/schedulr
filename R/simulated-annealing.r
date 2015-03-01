@@ -3,6 +3,182 @@
 
 
 
+# -----
+# Internal functions for validating input
+# -----
+
+
+#' Verify that cluster size is valid
+#'
+#' @param cluster.size Number of instancs in cluster (integer)
+#' @examples
+#' .validate.cluster.size(10)
+#' .validate.cluster.size(-2)
+.validate.cluster.size <- function(cluster.size) {
+
+  if (missing(cluster.size)) { stop('Missing required argument: cluster.size') }
+  if (length(cluster.size) != 1) { stop('Invalid argument length: cluster.size must be an integer') }
+  if (!is.numeric(cluster.size) || cluster.size != floor(cluster.size)) { stop('Non-integer argument: cluster.size') }
+  if (cluster.size <= 0) { stop('Invalid argument: cluster.size must be > 0') }
+
+} # end function - .validate.cluster.size
+
+
+#' Verify that task sizes are valid
+#'
+#' @param task.sizes Array of task sizes
+#' @examples
+#' (1:10)
+#' .validate.task.sizes('a')
+.validate.task.sizes <- function(task.sizes) {
+
+  if (missing(task.sizes)) { stop('Missing required argument: tasks') }
+  if (length(task.sizes) == 0) { stop('Invalid argument length: Must specify at least 1 task to schedule') }
+  if (!is.numeric(task.sizes)) { stop('Non-numeric argument: Tasks sizes must be valid numbers') }
+  if (any(task.sizes <= 0)) { stop('Invalid argument: Tasks sizes must be > 0') }
+
+} # end function - .validate.task.sizes
+
+
+#' Verify that assignment is valid
+#'
+#' @param assignment Array of task sizes
+#' @examples
+#' a <- get.initial.assignment(2, 3)
+#' .validate.assignment(a)
+#' .validate.assignment(b<-NULL)
+.validate.assignment <- function(assignment) {
+
+  if (missing(assignment)) { stop("Missing required argument: assignment") }
+  if (!is.list(assignment)) { stop("Invalid argument type: assignment must be a list") }
+  if (length(assignment) == 0) { stop("Invalid argument length: assignment must contain at least 1 instance") }
+  if (!is.numeric(unlist(assignment))) { stop("Non-numeric argument: tasks sizes must be valid numbers") }
+  if (sum((unlist(assignment) <= 0) > 0)) { stop("Invalid argument: tasks sizes must be > 0") }
+
+} # end function - .validate.assignment
+
+
+#' Verify that number of tasks is valid
+#'
+#' @param num.tasks Number of tasks in the job (+ve integer)
+#' @examples
+#' .validate.num.tasks(3)
+#'.validate.num.tasks(-1)
+.validate.num.tasks <- function(num.tasks) {
+
+  if (missing(num.tasks)) { stop("Missing required argument: num.tasks") }
+  if (length(num.tasks) > 1) { stop("Invalid argument type: num.tasks must be an single number") }
+  if (!is.numeric(num.tasks) || num.tasks != floor(num.tasks)) { stop('Non-integer argument: num.tasks') }
+  if (num.tasks <= 0) { stop("Invalid argument: num.tasks must be > 0") }
+
+} # end function - .validate.num.tasks
+
+
+#' Verify that the assignment has the minimum number of tasks required
+#'
+#' @param assignment List mapping tasks to instances
+#' @param min.num.tasks Minimum number of tasks in assignment
+#' @examples
+#' a <- get.initial.assignment(2, 4)
+#' .validate.num.tasks.in.assignment(a, 2)
+#' .validate.num.tasks.in.assignment(a, 5)
+.validate.num.tasks.in.assignment <- function(assignment, num.tasks.required) {
+
+  num.tasks.available <- length(unlist(assignment))
+  if (num.tasks.available < num.tasks.required) {
+    msg <- paste('Invalid argument: Cannot move', num.tasks.required, 'tasks when only', num.tasks.available, 'tasks are available')
+    stop(msg)
+  } # end if - move more tasks than available?
+
+} # end function .validate.num.tasks.in.assignment
+
+
+
+# -----
+# Other internal functions
+# -----
+
+
+#' Get list of instances that have the minimum number of tasks required
+.get.admissable.instances <- function(assignment, num.tasks.per.instance, num.instances.to.use) {
+
+  num.tasks.in.instances <- lapply(assignment, length)
+  admissable.instances <- which(num.tasks.in.instances >= num.tasks.per.instance)
+  num.admissable.instances <- length(admissable.instances)
+  if (num.admissable.instances < num.instances.to.use) stop("Invalid argument: Cannot find ", num.instances.to.use, " instances with at least ", num.tasks.per.instance, " tasks each")
+
+  return (admissable.instances)
+} # end function - get.admissable.instances
+
+
+#' Get number of instances depending on whether to exchange tasks or move tasks
+.get.num.instances <- function(exchange) {
+  num.instances <- 1
+  if (exchange) num.instances <- 2
+
+  return (num.instances)
+
+} # end function - .get.num.instances
+
+
+#' Get initial assignment of jobs to instances in a cluster
+#'
+#' Tasks are assigned to instances in decreasing order of longest processing time first (i.e., Longest Expected Processing Time First rule). Since task runtime is approximately proportional to task size, ordering tasks by runtime is equivalent to ordering tasks by size. The largest task is assigned to the first available machine, the 2nd largest task is assigned to the next available machine and so on.
+#'
+#' @param cluster.size Number of instances in the cluster (+ve integer)
+#' @param task.sizes Array of task sizes (positive reals)
+#' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
+#' @examples
+#' init <- get.initial.assignment.leptf(10, seq(1:30))
+.get.initial.assignment.leptf <- function(cluster.size, task.sizes) {
+
+  # Validate args
+  .validate.cluster.size(cluster.size)
+  .validate.task.sizes(task.sizes)
+
+	assignment <- vector('list', cluster.size)
+	sorted.task.sizes <- sort(task.sizes)
+  num.tasks <- length(sorted.task.sizes)
+
+	for (i in 1:num.tasks) {
+
+		total.size.per.instance <- lapply(assignment, sum)
+		instance.with.smallest.total <- which.min(total.size.per.instance)
+		# if multiple elements in list have the lowest value, which.min returns the first
+		# for our purposes, it doesn't matter which of the instances with the lowest total is used next
+
+		assignment[[instance.with.smallest.total]] <- c(assignment[[instance.with.smallest.total]], task.sizes[i])
+
+	} # end for - loop over all tasks in order
+
+	return (assignment)
+
+} # end function - get.initial.assignment.leptf
+
+
+
+# -----
+# Exported functions
+# -----
+
+
+#' Get initial assignment of jobs to instances in a cluster
+#'
+#' @param cluster.size Number of instances in the cluster (+ve integer)
+#' @param task.sizes Array of task sizes (positive reals)
+#' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
+#' @export
+#' @examples
+#' init <- get.initial.assignment(10, seq(1:30))
+get.initial.assignment <- function(cluster.size, task.sizes) {
+
+  assignment <- .get.initial.assignment.leptf(cluster.size, task.sizes)
+  return(assignment)
+
+} # end function - get.initial.assignment
+
+
+
 #' Get training set runtimes for instance type
 #'
 #' This function is called for its side-effect
@@ -18,49 +194,6 @@ get.runtimes <- function(instance.type) {
   data(list=dataset.name)
 
 } # end function - get.runtimes
-
-
-
-#' Get initial assignment of jobs to instances in a cluster
-#'
-#' Tasks are assigned to instances in decreasing order of longest processing time first (i.e., Longest Expected Processing Time First rule). Since task runtime is approximately proportional to task size, ordering tasks by runtime is equivalent to ordering tasks by size. The largest task is assigned to the first available machine, the 2nd largest task is assigned to the next available machine and so on.
-#'
-#' @param cluster.size Integer representing the number of instances in the cluster
-#' @param tasks Array of integers representing the sizes of tasks in the job
-#' @return A list containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
-#' @export
-#' @examples
-#' init <- get.initial.assignment(10, seq(1:30))
-get.initial.assignment <- function(cluster.size, tasks) {
-
-  # Validate args
-  if(missing(cluster.size)) { stop('Missing required argument: cluster.size') }
-  if(length(cluster.size) != 1) { stop('Invalid argument length: cluster.size must be an integer') }
-  if(!is.numeric(cluster.size) || cluster.size != floor(cluster.size)) { stop('Non-integer argument: cluster.size') }
-  if(cluster.size <= 0) { stop('Invalid argument: cluster.size must be > 0') }
-
-  if(missing(tasks)) { stop('Missing required argument: tasks') }
-  if(length(tasks) == 0) { stop('Invalid argument length: Must specify at least 1 task to schedule') }
-  if(!is.numeric(tasks)) { stop('Non-numeric argument: Tasks sizes must be valid numbers') }
-  if(any(tasks <= 0)) { stop('Invalid argument: Tasks sizes must be > 0') }
-
-	assignment <- vector('list', cluster.size)
-	sorted.tasks <- sort(tasks)
-
-	for(i in 1:length(sorted.tasks)) {
-
-		total.size.per.instance <- lapply(assignment, sum)
-		idx.instance.with.smallest.total <- which.min(total.size.per.instance)
-		# if multiple elements in list have the lowest value, which.min returns the first
-		# for our purposes, it doesn't matter which of the instances with the lowest total is used next
-
-		assignment[[idx.instance.with.smallest.total]] <- c(assignment[[idx.instance.with.smallest.total]], sorted.tasks[i])
-
-	} # end for - loop over all tasks in order
-
-	return(assignment)
-
-} # end function - get.initial.assignment
 
 
 
@@ -87,57 +220,15 @@ get.initial.assignment <- function(cluster.size, tasks) {
 get.neighbor <- function(assignment) {
 
 	neighbor.generation.method <- sample(c('single.transfer', 'single.exchange'), 1)
-	neighbor <- list()
 	if (neighbor.generation.method == 'single.transfer') {
-		# cat('single.transfer \n')
-		neighbor <- get.neighbor.by.moving.tasks(assignment, 1)
+		neighbor <- move.tasks(assignment, 1, exchange=F)
 	} else if (neighbor.generation.method == 'single.exchange') {
-		# cat('single.exchange \n')
-		neighbor <- get.neighbor.single.exchange(assignment)
+		neighbor <- move.tasks(assignment, 1, exchange=T)
 	} # end if - which neigbor generation method to use?
 
-	return(neighbor)
+	return (neighbor)
 
 } # end function - get.neighbor
-
-
-
-#' Generate neighbor by exchanging 1 task
-#'
-#' Randomly select 2 instances in the cluster. Randomly select 1 task from each of these instances. Exchange these tasks between the 2 instances. Simple random sampling without replacement is used in both sampling stages.
-#' @param assignment A list representing the assignment for which a neighbor is desired
-#' @return A list representing the neighboring assignment
-#' @export
-#' @examples
-#' assignment <- get.initial.assignment(10, seq(1:30))
-#' neighbor <- get.neighbor.single.exchange(assignment)
-get.neighbor.single.exchange <- function(assignment) {
-
-	# instance1 will donate a task to instance2
-	# instance2 will donate a task to instance1 (different from the above task)
-	instances.idx <- sample(length(assignment), 2, replace=F)
-	instance1.idx <- instances.idx[1]
-	instance2.idx <- instances.idx[2]
-
-	# get index of tasks to exchange
-	task1.idx <- sample(1:length(assignment[[instance1.idx]]), 1)
-	task2.idx <- sample(1:length(assignment[[instance2.idx]]), 1)
-
-	# save tasks
-	task1 <- assignment[[instance1.idx]][task1.idx]
-	task2 <- assignment[[instance2.idx]][task2.idx]
-
-	# delete tasks from instances
-	assignment[[instance1.idx]] <- assignment[[instance1.idx]][-task1.idx]
-	assignment[[instance2.idx]] <- assignment[[instance2.idx]][-task2.idx]
-
-	# add tasks to the other instance
-	assignment[[instance1.idx]] <- c(assignment[[instance1.idx]], task2)
-	assignment[[instance2.idx]] <- c(assignment[[instance2.idx]], task1)
-
-	return(assignment)
-
-} # end function - get.neighbor.single.exchange
 
 
 
@@ -147,67 +238,76 @@ get.neighbor.single.exchange <- function(assignment) {
 #'
 #' @param assignment A list representing the assignment for which a neighbor is desired
 #' @param num.tasks Integer representing the number of tasks to be moved from 1 instance to another
+#' @param exchange Exchange tasks between instances instead of moving them
 #' @return A list representing the neighboring assignment
 #' @export
 #' @examples
 #' assignment <- get.initial.assignment(10, seq(1:30))
-#' neighbor <- get.neighbor.by.moving.tasks(assignment, 1)
-get.neighbor.by.moving.tasks <- function(assignment, num.tasks) {
+#' neighbor <- move.tasks(assignment, 1)
+move.tasks <- function(assignment, num.tasks, exchange=F) {
 
   # Validate args
-  if(missing(assignment)) { stop("Missing required argument: assignment") }
-  if(!is.list(assignment)) { stop("Invalid argument type: assignment must be a list") }
-  if(length(assignment) == 0) { stop("Invalid argument length: assignment must contain at least 1 instance") }
-  if(!is.numeric(unlist(assignment))) { stop("Non-numeric argument: tasks sizes must be valid numbers") }
-  if(sum((unlist(assignment) <= 0) > 0)) { stop("Invalid argument: tasks sizes must be > 0") }
+  .validate.assignment(assignment)
+  .validate.num.tasks(num.tasks)
 
-  if(missing(num.tasks)) { stop("Missing required argument: num.tasks") }
-  if(length(num.tasks) > 1) { stop("Invalid argument type: num.tasks must be an single number") }
-  if(!is.numeric(num.tasks) || num.tasks != floor(num.tasks)) { stop('Non-integer argument: num.tasks') }
-  if(num.tasks <= 0) { stop("Invalid argument: num.tasks must be > 0") }
+  # Cannot shift more tasks than available
+  .validate.num.tasks.in.assignment(assignment, num.tasks)
 
 
-  # Cannot move tasks between instances when there is only 1 instance
-  num.instances <- length(assignment)
-  if(num.instances == 1) { return(assignment) }
+  # number of instances to use depends on whether we are moving tasks or exchanging tasks
+  num.instances.to.use <- .get.num.instances(exchange)
 
-  # Cannot move more tasks than available
-  num.tasks.available <- length(unlist(assignment))
-  if (num.tasks.available < num.tasks) {
-    msg <- paste('Invalid argument: Cannot move', num.tasks, 'tasks when only', num.tasks.available, 'tasks are available')
-    stop(msg)
-  } # end if - move more tasks than available?
+  # Need at least 2 instances in assignment
+  num.instances.in.assignment <- length(assignment)
+  if (num.instances.in.assignment < 2) { return (assignment) }
 
 
-  # Get all instances with at least num.tasks
-  num.tasks.in.instances <- lapply(assignment, length)
-  idx.all.instances.with.tasks <- which(num.tasks.in.instances >= num.tasks)
-  if (length(idx.all.instances.with.tasks) == 0) { stop("Invalid argument: No instance has ", num.tasks, ' tasks to move') }
+  # - Get all instances with at least num.tasks.to.use
+  # - Sample required number of instances from this list
+  all.admissable.instances <- .get.admissable.instances(assignment, num.tasks, num.instances.to.use)
+  idx.admissable.instances.sample <- sample(1:length(all.admissable.instances), num.instances.to.use)
+  admissable.instances.sample <- all.admissable.instances[idx.admissable.instances.sample]
 
-  # Sample an instance from this list
-  idx.idx.instance.with.tasks <- sample(1:length(idx.all.instances.with.tasks), 1)
-  idx.instance.with.tasks <- idx.all.instances.with.tasks[idx.idx.instance.with.tasks]
+  # Remove task(s) from donor instance(s)
+  tasks.mat <- matrix(nrow=num.instances.to.use, ncol=num.tasks)
+  for (i in 1:num.instances.to.use) {
 
-  # Remove a task from this instance
-  num.tasks.in.instance <- length(assignment[[idx.instance.with.tasks]])
-  idx.tasks <- sample(1:num.tasks.in.instance, num.tasks)
-  tasks <- assignment[[idx.instance.with.tasks]][idx.tasks]
-  assignment[[idx.instance.with.tasks]] = assignment[[idx.instance.with.tasks]][-idx.tasks]
-  num.remaining.tasks.in.instance <- length(assignment[[idx.instance.with.tasks]])
-  if (num.remaining.tasks.in.instance == 0) assignment[idx.instance.with.tasks] <- list(NULL)
+    inst <- admissable.instances.sample[i]
+    num.tasks.in.instance <- length(assignment[[inst]])
+    idx.tasks <- sample(1:num.tasks.in.instance, num.tasks)
+    tasks <- assignment[[inst]][idx.tasks]
+
+    assignment[[inst]] = assignment[[inst]][-idx.tasks]
+    num.remaining.tasks.in.instance <- length(assignment[[inst]])
+    if (num.remaining.tasks.in.instance == 0) assignment[inst] <- list(NULL)
+
+    tasks.mat[i,] <- tasks
+  } # end for - loop over all instances
 
 
-  # Get another instance
-  idx.remaining.instances <- (1:length(assignment))[-idx.instance.with.tasks]
-  if (length(idx.remaining.instances) == 1) { idx.instance2 <- idx.remaining.instances }
-  else { idx.instance2 <- sample(c(idx.remaining.instances), 1) }
+  # TODO: need a more general way to do this
+  if (exchange) {
+    instance1 <- admissable.instances.sample[1]
+    assignment[[instance1]] <- c(assignment[[instance1]], tasks.mat[2,])
 
-  # Move the task to this instance
-  assignment[[idx.instance2]] <- c(assignment[[idx.instance2]], tasks)
+    instance2 <- admissable.instances.sample[2]
+    assignment[[instance2]] <- c(assignment[[instance2]], tasks.mat[1,])
 
-  return(assignment)
+  } else {
+    # Get acceptor instance
+    idx.remaining.instances <- (1:length(assignment))[-admissable.instances.sample]
+    num.remaining.instances <- length(idx.remaining.instances)
+    if (num.remaining.instances == 1) { instance2 <- idx.remaining.instances }
+    else { instance2 <- sample(c(idx.remaining.instances), 1) }
 
-} # end sub - get.neighbor.by.moving.tasks
+    # Move the task to this instance
+    assignment[[instance2]] <- c(assignment[[instance2]], tasks.mat[1,])
+
+  } # end if - move only?
+
+  return (assignment)
+
+} # end sub - move.tasks
 
 
 
@@ -232,15 +332,15 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, d
 	proposed.score <- get.score(proposed.assignment, runtimes, deadline)
 
 	if (proposed.score < cur.score) {
-		return(list("assignment"=proposed.assignment, "score"=proposed.score))
+		return (list("assignment"=proposed.assignment, "score"=proposed.score))
 	} else {
 		temp <- get.temperature(max.temp, max.iter, cur.iter)
 		lhs <- exp((cur.score-proposed.score)/temp)
-		rhs <- runif(1, min=0, max=1)
+		rhs <- runif (1, min=0, max=1)
 		if (lhs > rhs) {
-			return(list("assignment"=proposed.assignment, "score"=proposed.score))
+			return (list("assignment"=proposed.assignment, "score"=proposed.score))
 		} else {
-			return(list("assignment"=cur.assignment, "score"=cur.score))
+			return (list("assignment"=cur.assignment, "score"=cur.score))
 		}
 	} # end if - proposed.score < cur.score?
 
@@ -259,7 +359,7 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, d
 #' prob <- get.score(assignment, runtimes, 3600)
 get.score <- function(assignment, runtimes, deadline) {
 
-	return(0)
+	return (0)
 
 } # end function - get.score
 
@@ -282,7 +382,7 @@ get.temperature <- function(max.temp, max.iter, cur.iter) {
 	# cur.iter is guaranteed to be at most 1 less than max.iter
 	# so cur.temp will always be > 0
 	cur.temp <- (max.iter-cur.iter)*(max.temp/max.iter)
-	return(cur.temp)
+	return (cur.temp)
 
 } # end function - get.temperature
 
@@ -318,7 +418,7 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
 
 	# go from 0 to 1 less than max.iter
 	# so we start at max temp and end just above 0 and avoid divide-by-zero errors
-	for(i in 0:(max.iter-1)) {
+	for (i in 0:(max.iter-1)) {
 
 		proposed.assignment <- get.neighbor(cur.assignment)
 		accepted <- compare.assignments(cur.assignment, proposed.assignment, runtimes, deadline, max.temp, max.iter, i)
