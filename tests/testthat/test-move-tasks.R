@@ -25,7 +25,7 @@ test_that("move.tasks validates num.tasks correctly", {
   expect_error(move.tasks(assignment, 'a'), 'Non-integer argument')
   expect_error(move.tasks(assignment, 3.14), 'Non-integer argument')
   expect_error(move.tasks(assignment, -1), 'Invalid argument')
-  expect_error(move.tasks(assignment, c(1,2)), 'Invalid argument type')
+  expect_error(move.tasks(assignment, c(1,2)), 'Invalid argument length')
 
 })
 
