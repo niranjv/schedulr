@@ -25,7 +25,6 @@ test_that("get.temperature validates cur.iter correctly", {
   expect_error(get.temperature(25, 100, 'a'), 'Non-integer argument')
   expect_error(get.temperature(25, 100, '3.14'), 'Non-integer argument')
   expect_error(get.temperature(25, 100, 1:2), 'Invalid argument length')
-  expect_error(get.temperature(25, 100, 0), 'Invalid argument')
   expect_error(get.temperature(25, 100, 101), 'Invalid argument')
 })
 
