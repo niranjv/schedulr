@@ -32,6 +32,8 @@ cluster.instance.type <- 'm3xlarge'
 cluster.size <- 10
 max.iter <- 10
 max.temp <- 25
+data(m3xlarge.runtimes.expdist)
+setup.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
 best.schedule <- schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
 }
 
