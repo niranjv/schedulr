@@ -28,6 +28,16 @@ data.env <- new.env()
 } # end function - .check.if.positive.integer
 
 
+.check.if.nonnegative.integer <- function(value) {
+
+  if (missing(value)) { stop("Missing required argument: Must specify a value") }
+  if (length(value) != 1) { stop("Invalid argument length: Must specify a single number") }
+  if (!is.numeric(value) || value != floor(value)) { stop('Non-integer argument: value') }
+  if (value < 0) { stop("Invalid argument: Value must be >= 0") }
+
+} # end function - .check.if.positive.integer
+
+
 
 #' Verify that input values are valid
 #'
@@ -102,6 +112,7 @@ data.env <- new.env()
   # data(list=dataset.name)
 
   varname <- paste(instance.type, '.runtimes', sep='')
+  if(!exists(varname, envir=data.env)) { stop("Runtimes for ", instance.type, " not setup correctly") }
   var <- get(varname, envir=data.env) # get var from internal env (data.env)
   return (var)
 
@@ -118,10 +129,6 @@ data.env <- new.env()
 #' @examples
 #' init <- get.initial.assignment.leptf(10, seq(1:30))
 .get.initial.assignment.leptf <- function(cluster.size, task.sizes) {
-
-  # Validate args
-  .check.if.positive.integer(cluster.size)
-  .check.if.positive.real(task.sizes)
 
 	assignment <- vector('list', cluster.size)
 	sorted.task.sizes <- sort(task.sizes)
@@ -220,6 +227,10 @@ setup.runtimes <- function(instance.type, runtimes) {
 #' @examples
 #' init <- get.initial.assignment(10, seq(1:30))
 get.initial.assignment <- function(cluster.size, task.sizes) {
+
+  # Validate args
+  .check.if.positive.integer(cluster.size)
+  .check.if.positive.real(task.sizes)
 
   assignment <- .get.initial.assignment.leptf(cluster.size, task.sizes)
   return(assignment)
@@ -409,9 +420,10 @@ get.score <- function(assignment, runtimes, deadline) {
 #' temp <- get.temperature(25, 100, 7)
 get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
 
+  # Validate args
   .check.if.positive.integer(max.temp)
   .check.if.positive.integer(max.iter)
-  .check.if.positive.integer(cur.iter)
+  .check.if.nonnegative.integer(cur.iter)
   if (cur.iter >= max.iter) { stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
   if (method != 'linear') { stop('Invalid argument: Only method=linear is currently supported') }
 
