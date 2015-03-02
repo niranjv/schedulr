@@ -193,6 +193,30 @@ data.env <- new.env()
 } # end function - get.temperature.linear.decrease
 
 
+.validate.runtimes <- function(runtimes) {
+
+  !missing(runtimes) || stop("Missing required argument: Must specify runtimes")
+  is.matrix(runtimes) || stop("Invalid argument type: runtimes must be a numeric matrix with 2 columns")
+  NCOL(runtimes) == 2 || stop("Invalid argument dimensions: runtimes must be a numeric matrix with 2 columns")
+  NROW(runtimes) > 0 || stop("Invalid argument dimensions: runtimes must be a numeric matrix with at least 1 row")
+  is.numeric(runtimes) || stop ("Invalid argument: runtimes must be a numeric matrix")
+  sum(runtimes[,1] < 0) == 0 || stop("Invalid argument: 1st column (size) cannot have negative values")
+  sum(runtimes[,2] < 0) == 0 || stop("Invalid argument: 2nd column (runtimes) cannot have negative values")
+
+} # end function - .validate.runtimes
+
+
+.validate.instance.type <- function(instance.type) {
+
+  !missing(instance.type) || stop("Missing required argument: Must specify instance.type")
+  length(instance.type) != 0 || stop("Invalid argument length: instance.type must be a string")
+  nchar(instance.type) > 0 || stop("Invalid argument length: instance.type must be a string")
+  is.character(instance.type) || stop ("Invalid argument type: instance.type must be a string")
+  NROW(instance.type) == 1 || stop ("Invalid argument length: instance.type must be a string, not a vector of strings")
+
+} # end function - .validate.runtimes
+
+
 
 # -----
 # Exported functions
@@ -210,6 +234,10 @@ data.env <- new.env()
 #' runtimes <- cbind(rep(c(1,2), each=5), c(rpois(5,5), rpois(5,10)))
 #' setup.runtimes('m3xlarge', runtimes)
 setup.runtimes <- function(instance.type, runtimes) {
+
+  # Validate args
+  .validate.instance.type(instance.type)
+  .validate.runtimes(runtimes)
 
   varname <- paste(instance.type, '.runtimes', sep='')
   assign(varname, runtimes, envir=data.env) # create new var in internal env (data.env)
@@ -299,7 +327,7 @@ move.tasks <- function(assignment, num.tasks, exchange=F) {
   # number of instances to use depends on whether we are moving tasks or exchanging tasks
   num.instances.to.use <- .get.num.instances(exchange)
 
-  # Need at least 2 instances in assignment
+  # Need at least 2 instances in assignment to move or exchange tasks
   num.instances.in.assignment <- length(assignment)
   if (num.instances.in.assignment < 2) { return (assignment) }
 
