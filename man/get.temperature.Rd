@@ -4,7 +4,7 @@
 \alias{get.temperature}
 \title{Get temperature for current iteration}
 \usage{
-get.temperature(max.temp, max.iter, cur.iter)
+get.temperature(max.temp, max.iter, cur.iter, method = "linear")
 }
 \arguments{
 \item{max.temp}{Max value of temperature to use (float)}
@@ -13,12 +13,14 @@ get.temperature(max.temp, max.iter, cur.iter)
 (integer)}
 
 \item{cur.iter}{Value of current iteration (integer)}
+
+\item{method}{Method used to decrease temperature. Currently only linear decrease of temperature with each iteration is supported}
 }
 \value{
 Value of temperture for the current iteration (integer)
 }
 \description{
-Temperature decreases linearly with each iteration
+Get temperature for current iteration
 }
 \examples{
 temp <- get.temperature(25, 100, 7)
