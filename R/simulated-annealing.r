@@ -2,42 +2,49 @@
 # Functions for Simulated annealing
 
 
+data.env <- new.env()
+
 
 # -----
 # Internal functions for validating input
 # -----
 
-
-#' Verify that cluster size is valid
+#' Validate that the input value is a positive integer
 #'
-#' @param cluster.size Number of instancs in cluster (integer)
+#' @param val The value to validate
 #' @examples
-#' .validate.cluster.size(10)
-#' .validate.cluster.size(-2)
-.validate.cluster.size <- function(cluster.size) {
+#' check.if.positive.integer(5)
+#' check.if.positive.integer(3.14)
+#' check.if.positive.integer(-10)
+#' check.if.positive.integer(1:2)
+#' check.if.positive.integer('a')
+.check.if.positive.integer <- function(value) {
 
-  if (missing(cluster.size)) { stop('Missing required argument: cluster.size') }
-  if (length(cluster.size) != 1) { stop('Invalid argument length: cluster.size must be an integer') }
-  if (!is.numeric(cluster.size) || cluster.size != floor(cluster.size)) { stop('Non-integer argument: cluster.size') }
-  if (cluster.size <= 0) { stop('Invalid argument: cluster.size must be > 0') }
+  if (missing(value)) { stop("Missing required argument: Must specify a value") }
+  if (length(value) != 1) { stop("Invalid argument length: Must specify a single number") }
+  if (!is.numeric(value) || value != floor(value)) { stop('Non-integer argument: value') }
+  if (value <= 0) { stop("Invalid argument: Value must be > 0") }
 
-} # end function - .validate.cluster.size
+} # end function - .check.if.positive.integer
 
 
-#' Verify that task sizes are valid
+
+#' Verify that input values are valid
 #'
-#' @param task.sizes Array of task sizes
+#' @param task.sizes Array of values to validate
 #' @examples
-#' (1:10)
-#' .validate.task.sizes('a')
-.validate.task.sizes <- function(task.sizes) {
+#' '.check.if.positive.real(c(1.2,3.4))
+#' .check.if.positive.real(3.14)
+#' .check.if.positive.real('a')
+.check.if.positive.real <- function(value) {
 
-  if (missing(task.sizes)) { stop('Missing required argument: tasks') }
-  if (length(task.sizes) == 0) { stop('Invalid argument length: Must specify at least 1 task to schedule') }
-  if (!is.numeric(task.sizes)) { stop('Non-numeric argument: Tasks sizes must be valid numbers') }
-  if (any(task.sizes <= 0)) { stop('Invalid argument: Tasks sizes must be > 0') }
+  if (missing(value)) { stop('Missing required argument: Must specify a value') }
+  if (length(value) == 0) { stop('Invalid argument length: Must specify a value') }
+  if (!is.numeric(value)) { stop('Non-numeric argument: Must specify a valid +ve real number') }
+  if (any(value <= 0)) { stop('Invalid argument: Value must be > 0') }
 
-} # end function - .validate.task.sizes
+} # end function - .check.if.positive.real
+
 
 
 #' Verify that assignment is valid
@@ -57,21 +64,6 @@
 
 } # end function - .validate.assignment
 
-
-#' Verify that number of tasks is valid
-#'
-#' @param num.tasks Number of tasks in the job (+ve integer)
-#' @examples
-#' .validate.num.tasks(3)
-#'.validate.num.tasks(-1)
-.validate.num.tasks <- function(num.tasks) {
-
-  if (missing(num.tasks)) { stop("Missing required argument: num.tasks") }
-  if (length(num.tasks) > 1) { stop("Invalid argument type: num.tasks must be an single number") }
-  if (!is.numeric(num.tasks) || num.tasks != floor(num.tasks)) { stop('Non-integer argument: num.tasks') }
-  if (num.tasks <= 0) { stop("Invalid argument: num.tasks must be > 0") }
-
-} # end function - .validate.num.tasks
 
 
 #' Verify that the assignment has the minimum number of tasks required
@@ -93,48 +85,43 @@
 } # end function .validate.num.tasks.in.assignment
 
 
-
 # -----
 # Other internal functions
 # -----
 
 
-#' Get list of instances that have the minimum number of tasks required
-.get.admissable.instances <- function(assignment, num.tasks.per.instance, num.instances.to.use) {
+#' Get runtimes for instance type
+#'
+#' @inheritParams setup.runtimes
+#' @return Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
+#' @examples
+#' .get.runtimes('m3xlarge')
+.get.runtimes <- function(instance.type) {
 
-  num.tasks.in.instances <- lapply(assignment, length)
-  admissable.instances <- which(num.tasks.in.instances >= num.tasks.per.instance)
-  num.admissable.instances <- length(admissable.instances)
-  if (num.admissable.instances < num.instances.to.use) stop("Invalid argument: Cannot find ", num.instances.to.use, " instances with at least ", num.tasks.per.instance, " tasks each")
+  # dataset.name <- paste(instance.type, '.runtimes.expdist', sep='')
+  # data(list=dataset.name)
 
-  return (admissable.instances)
-} # end function - get.admissable.instances
+  varname <- paste(instance.type, '.runtimes', sep='')
+  var <- get(varname, envir=data.env) # get var from internal env (data.env)
+  return (var)
 
+} # end function - get.runtimes
 
-#' Get number of instances depending on whether to exchange tasks or move tasks
-.get.num.instances <- function(exchange) {
-  num.instances <- 1
-  if (exchange) num.instances <- 2
-
-  return (num.instances)
-
-} # end function - .get.num.instances
 
 
 #' Get initial assignment of jobs to instances in a cluster
 #'
 #' Tasks are assigned to instances in decreasing order of longest processing time first (i.e., Longest Expected Processing Time First rule). Since task runtime is approximately proportional to task size, ordering tasks by runtime is equivalent to ordering tasks by size. The largest task is assigned to the first available machine, the 2nd largest task is assigned to the next available machine and so on.
 #'
-#' @param cluster.size Number of instances in the cluster (+ve integer)
-#' @param task.sizes Array of task sizes (positive reals)
+#' @inheritParams get.initial.assignment
 #' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
 #' @examples
 #' init <- get.initial.assignment.leptf(10, seq(1:30))
 .get.initial.assignment.leptf <- function(cluster.size, task.sizes) {
 
   # Validate args
-  .validate.cluster.size(cluster.size)
-  .validate.task.sizes(task.sizes)
+  .check.if.positive.integer(cluster.size)
+  .check.if.positive.real(task.sizes)
 
 	assignment <- vector('list', cluster.size)
 	sorted.task.sizes <- sort(task.sizes)
@@ -157,9 +144,71 @@
 
 
 
+#' Get list of instances that have the minimum number of tasks required
+.get.admissable.instances <- function(assignment, num.tasks.per.instance, num.instances.to.use) {
+
+  num.tasks.in.instances <- lapply(assignment, length)
+  admissable.instances <- which(num.tasks.in.instances >= num.tasks.per.instance)
+  num.admissable.instances <- length(admissable.instances)
+  if (num.admissable.instances < num.instances.to.use) stop("Invalid argument: Cannot find ", num.instances.to.use, " instances with at least ", num.tasks.per.instance, " tasks each")
+
+  return (admissable.instances)
+} # end function - get.admissable.instances
+
+
+
+#' Get number of instances depending on whether to exchange tasks or move tasks
+.get.num.instances <- function(exchange) {
+  num.instances <- 1
+  if (exchange) num.instances <- 2
+
+  return (num.instances)
+
+} # end function - .get.num.instances
+
+
+
+#' Get temperature for current iteration
+#'
+#' Temperature decreases linearly with each iteration
+#'
+#' @inheritParams get.temperature
+#' @return Value of temperture for the current iteration (integer)
+#' @examples
+#' temp <- .get.temperature.linear.decrease(25, 100, 7)
+.get.temperature.linear.decrease <- function(max.temp, max.iter, cur.iter) {
+
+  # cur.iter is guaranteed to be at most 1 less than max.iter
+	# so cur.temp will always be > 0
+	cur.temp <- (max.iter-cur.iter)*(max.temp/max.iter)
+	return (cur.temp)
+
+} # end function - get.temperature.linear.decrease
+
+
+
 # -----
 # Exported functions
 # -----
+
+
+#' Setup runtimes for given instance type
+#'
+#' All instances in a cluster are assumed ot be of the same type
+#'
+#' @param instance.type Instance type of cluster (string). All instances in the cluster are assumed to be of the same type
+#' @param runtimes Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
+#' @export
+#' @examples
+#' runtimes <- cbind(rep(c(1,2), each=5), c(rpois(5,5), rpois(5,10)))
+#' setup.runtimes('m3xlarge', runtimes)
+setup.runtimes <- function(instance.type, runtimes) {
+
+  varname <- paste(instance.type, '.runtimes', sep='')
+  assign(varname, runtimes, envir=data.env) # create new var in internal env (data.env)
+
+} # end function - setup.runtimes
+
 
 
 #' Get initial assignment of jobs to instances in a cluster
@@ -176,24 +225,6 @@ get.initial.assignment <- function(cluster.size, task.sizes) {
   return(assignment)
 
 } # end function - get.initial.assignment
-
-
-
-#' Get training set runtimes for instance type
-#'
-#' This function is called for its side-effect
-#'
-#' @param instance.type Instance type of cluster (string). All instances in the cluster are assumed to be of the same type
-#' @return Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
-#' @export
-#' @examples
-#' get.runtimes('m3xlarge')
-get.runtimes <- function(instance.type) {
-
-  dataset.name <- paste(instance.type, '.runtimes.expdist', sep='')
-  data(list=dataset.name)
-
-} # end function - get.runtimes
 
 
 
@@ -248,7 +279,7 @@ move.tasks <- function(assignment, num.tasks, exchange=F) {
 
   # Validate args
   .validate.assignment(assignment)
-  .validate.num.tasks(num.tasks)
+  .check.if.positive.integer(num.tasks)
 
   # Cannot shift more tasks than available
   .validate.num.tasks.in.assignment(assignment, num.tasks)
@@ -367,22 +398,30 @@ get.score <- function(assignment, runtimes, deadline) {
 
 #' Get temperature for current iteration
 #'
-#' Temperature decreases linearly with each iteration
-#'
 #' @param max.temp Max value of temperature to use (float)
 #' @param max.iter Max number of iterations to search for optimal solution
 #'   (integer)
 #' @param cur.iter Value of current iteration (integer)
+#' @param method Method used to decrease temperature. Currently only linear decrease of temperature with each iteration is supported
 #' @return Value of temperture for the current iteration (integer)
 #' @export
 #' @examples
 #' temp <- get.temperature(25, 100, 7)
-get.temperature <- function(max.temp, max.iter, cur.iter) {
+get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
 
-	# cur.iter is guaranteed to be at most 1 less than max.iter
-	# so cur.temp will always be > 0
-	cur.temp <- (max.iter-cur.iter)*(max.temp/max.iter)
-	return (cur.temp)
+  .check.if.positive.integer(max.temp)
+  .check.if.positive.integer(max.iter)
+  .check.if.positive.integer(cur.iter)
+  if (cur.iter >= max.iter) { stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
+  if (method != 'linear') { stop('Invalid argument: Only method=linear is currently supported') }
+
+  if (method=='linear') {
+    temp <- .get.temperature.linear.decrease(max.temp, max.iter, cur.iter)
+  } else {
+    stop('Invalid argument: ', method, ' method of decreasing temperature is invalid!')
+  }# end if - linear decrease in temp?
+
+  return(temp)
 
 } # end function - get.temperature
 
@@ -407,10 +446,12 @@ get.temperature <- function(max.temp, max.iter, cur.iter) {
 #' cluster.size <- 10
 #' max.iter <- 10
 #' max.temp <- 25
-#'best.schedule <- schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
+#' data(m3xlarge.runtimes.expdist)
+#' setup.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
+#' best.schedule <- schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
 schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp) {
 
-	runtimes <- get.runtimes(cluster.instance.type)
+	runtimes <- .get.runtimes(cluster.instance.type)
 
 	cur.assignment <- get.initial.assignment(cluster.size, job)
 	cur.score <- get.score(cur.assignment, runtimes, deadline)
