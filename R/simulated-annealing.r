@@ -394,6 +394,19 @@ move.tasks <- function(assignment, num.tasks, exchange=F) {
 # accepted <- compare.assignments(cur.assignment, proposed.assignment, runtimes, 3600, 25, 100, 7)
 compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, deadline, max.temp, max.iter, cur.iter) {
 
+  # Validate args
+  .validate.assignment(cur.assignment)
+  .validate.assignment(proposed.assignment)
+
+  .validate.runtimes(runtimes)
+  .check.if.positive.real(deadline)
+  length(deadline) == 1 || stop("Invalid argument length: deadline must be a single +ve real number")
+
+  .check.if.positive.integer(max.temp)
+  .check.if.positive.integer(max.iter)
+  .check.if.nonnegative.integer(cur.iter)
+  if (cur.iter >= max.iter) { stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
+
 	cur.score <- get.score(cur.assignment, runtimes, deadline)
 	proposed.score <- get.score(proposed.assignment, runtimes, deadline)
 
