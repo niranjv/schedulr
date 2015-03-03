@@ -68,3 +68,15 @@ test_that("setup.runtimes validates runtimes correctly ", {
   expect_error(setup.runtimes('mytype', r), 'Invalid argument')
 
 })
+
+
+test_that("setup.runtimes creates variable correctly in the right env", {
+
+  r <- matrix(nrow=1, ncol=2)
+  r[1, 1] <- 1; r[1, 2] <- 1
+  setup.runtimes('mytype', r)
+
+  expect_error(get('mytype.runtimes'), 'not found')
+  expect_equal(get('mytype.runtimes', envir=data.env), r)
+
+})
