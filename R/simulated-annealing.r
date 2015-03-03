@@ -285,14 +285,10 @@ get.initial.assignment <- function(cluster.size, task.sizes) {
 #' candidate.assignment <- get.neighbor(assignment)
 get.neighbor <- function(assignment) {
 
-	neighbor.generation.method <- sample(c('single.transfer', 'single.exchange'), 1)
-	if (neighbor.generation.method == 'single.transfer') {
-		neighbor <- move.tasks(assignment, 1, exchange=F)
-	} else if (neighbor.generation.method == 'single.exchange') {
-		neighbor <- move.tasks(assignment, 1, exchange=T)
-	} # end if - which neigbor generation method to use?
+  ex <- sample(c('T', 'F'), 1)
+  neighbor <- move.tasks(assignment, 1, exchange=ex)
 
-	return (neighbor)
+  return (neighbor)
 
 } # end function - get.neighbor
 
