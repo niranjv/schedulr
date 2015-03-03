@@ -92,7 +92,19 @@ test_that("get.score validates deadline correctly", {
   expect_error(get.score(assignment, r, 1:2), 'Invalid argument length')
   expect_error(get.score(assignment, r, 0), 'Invalid argument')
 
+})
+
+
+test_that("get.score returns a valid value", {
+
+  assignment <- get.initial.assignment(1, c(10))
+  r <- matrix(nrow=1, ncol=2)
+  r[1, 1] <- 1
+  r[1, 2] <- 1
+
   s <- get.score(assignment, r, 3600)
-  expect_true(s >= 0 && s <= 1) # since score is a probability
+  expect_true(!is.null(s)) # must always return a value...
+  expect_true(is.numeric(s)) # ... that is a number...
+  expect_true(s >= 0 && s <= 1) # between 0 and 1
 
 })
