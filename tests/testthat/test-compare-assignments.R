@@ -133,3 +133,70 @@ test_that("compare.assignments validates max.temp correctly", {
   expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, 0), 'Invalid argument')
 
 })
+
+
+test_that("compare.assignments validates max.iter correctly", {
+
+  cur.assignment <- get.initial.assignment(1, c(10))
+  proposed.assignment <- get.initial.assignment(2, c(10))
+  r <- matrix(nrow=1, ncol=2)
+  r[1, 1] <- 1
+  r[1, 2] <- 1
+
+  deadline <- 3600
+  max.temp <- 25
+
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, ), 'Missing required argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, c()), 'Invalid argument length')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, 'a'), 'Non-integer argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, 3.14), 'Non-integer argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, 1:2), 'Invalid argument length')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, -1), 'Invalid argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, 0), 'Invalid argument')
+
+})
+
+
+test_that("compare.assignments validates cur.iter correctly", {
+
+  cur.assignment <- get.initial.assignment(1, c(10))
+  proposed.assignment <- get.initial.assignment(2, c(10))
+  r <- matrix(nrow=1, ncol=2)
+  r[1, 1] <- 1
+  r[1, 2] <- 1
+
+  deadline <- 3600
+  max.temp <- 25
+  max.iter <- 100
+
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, max.iter, ), 'Missing required argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, max.iter, c()), 'Invalid argument length')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, max.iter, 'a'), 'Non-integer argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, max.iter, 3.14), 'Non-integer argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, max.iter, 1:2), 'Invalid argument length')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, max.iter, -1), 'Invalid argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, max.iter, 101), 'Invalid argument')
+
+})
+
+
+test_that("compare.assignments returns a valid value", {
+
+  cur.assignment <- get.initial.assignment(1, c(10))
+  proposed.assignment <- get.initial.assignment(2, c(10))
+  r <- matrix(nrow=1, ncol=2)
+  r[1, 1] <- 1
+  r[1, 2] <- 1
+
+  deadline <- 3600
+  max.temp <- 25
+  max.iter <- 100
+  cur.iter <- 1
+
+  accepted <- compare.assignments(cur.assignment, proposed.assignment, r, deadline, max.temp, max.iter, cur.iter)
+  expect_is(accepted, 'list')
+  expect_is(accepted[[1]], 'list')
+  expect_is(accepted[[2]], 'numeric')
+  expect_true(accepted[[2]] >= 0 && accepted[[2]] <= 1)
+
+})
