@@ -20,6 +20,8 @@ The score of the assignment, i.e, the probability of the assignment completing t
 Get score for input assignment
 }
 \examples{
+assignment <- get.initial.assignment(1,c(10))
+runtimes <- matrix(c(1,1), nrow=1, ncol=2)
 prob <- get.score(assignment, runtimes, 3600)
 }
 

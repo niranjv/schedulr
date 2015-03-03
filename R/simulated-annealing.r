@@ -38,12 +38,11 @@ data.env <- new.env()
 } # end function - .check.if.positive.integer
 
 
-
 #' Verify that input values are valid
 #'
 #' @param task.sizes Array of values to validate
 #' @examples
-#' '.check.if.positive.real(c(1.2,3.4))
+#' '(c(1.2,3.4))
 #' .check.if.positive.real(3.14)
 #' .check.if.positive.real('a')
 .check.if.positive.real <- function(value) {
@@ -54,7 +53,6 @@ data.env <- new.env()
   if (any(value <= 0)) { stop('Invalid argument: Value must be > 0') }
 
 } # end function - .check.if.positive.real
-
 
 
 #' Verify that assignment is valid
@@ -75,7 +73,6 @@ data.env <- new.env()
 } # end function - .validate.assignment
 
 
-
 #' Verify that the assignment has the minimum number of tasks required
 #'
 #' @param assignment List mapping tasks to instances
@@ -93,6 +90,30 @@ data.env <- new.env()
   } # end if - move more tasks than available?
 
 } # end function .validate.num.tasks.in.assignment
+
+
+.validate.runtimes <- function(runtimes) {
+
+  !missing(runtimes) || stop("Missing required argument: Must specify runtimes")
+  is.matrix(runtimes) || stop("Invalid argument type: runtimes must be a numeric matrix with 2 columns")
+  NCOL(runtimes) == 2 || stop("Invalid argument dimensions: runtimes must be a numeric matrix with 2 columns")
+  NROW(runtimes) > 0 || stop("Invalid argument dimensions: runtimes must be a numeric matrix with at least 1 row")
+  is.numeric(runtimes) || stop ("Invalid argument: runtimes must be a numeric matrix")
+  sum(runtimes[,1] < 0) == 0 || stop("Invalid argument: 1st column (size) cannot have negative values")
+  sum(runtimes[,2] < 0) == 0 || stop("Invalid argument: 2nd column (runtimes) cannot have negative values")
+
+} # end function - .validate.runtimes
+
+
+.validate.instance.type <- function(instance.type) {
+
+  !missing(instance.type) || stop("Missing required argument: Must specify instance.type")
+  length(instance.type) != 0 || stop("Invalid argument length: instance.type must be a string")
+  nchar(instance.type) > 0 || stop("Invalid argument length: instance.type must be a string")
+  is.character(instance.type) || stop ("Invalid argument type: instance.type must be a string")
+  NROW(instance.type) == 1 || stop ("Invalid argument length: instance.type must be a string, not a vector of strings")
+
+} # end function - .validate.runtimes
 
 
 # -----
@@ -191,31 +212,6 @@ data.env <- new.env()
 	return (cur.temp)
 
 } # end function - get.temperature.linear.decrease
-
-
-.validate.runtimes <- function(runtimes) {
-
-  !missing(runtimes) || stop("Missing required argument: Must specify runtimes")
-  is.matrix(runtimes) || stop("Invalid argument type: runtimes must be a numeric matrix with 2 columns")
-  NCOL(runtimes) == 2 || stop("Invalid argument dimensions: runtimes must be a numeric matrix with 2 columns")
-  NROW(runtimes) > 0 || stop("Invalid argument dimensions: runtimes must be a numeric matrix with at least 1 row")
-  is.numeric(runtimes) || stop ("Invalid argument: runtimes must be a numeric matrix")
-  sum(runtimes[,1] < 0) == 0 || stop("Invalid argument: 1st column (size) cannot have negative values")
-  sum(runtimes[,2] < 0) == 0 || stop("Invalid argument: 2nd column (runtimes) cannot have negative values")
-
-} # end function - .validate.runtimes
-
-
-.validate.instance.type <- function(instance.type) {
-
-  !missing(instance.type) || stop("Missing required argument: Must specify instance.type")
-  length(instance.type) != 0 || stop("Invalid argument length: instance.type must be a string")
-  nchar(instance.type) > 0 || stop("Invalid argument length: instance.type must be a string")
-  is.character(instance.type) || stop ("Invalid argument type: instance.type must be a string")
-  NROW(instance.type) == 1 || stop ("Invalid argument length: instance.type must be a string, not a vector of strings")
-
-} # end function - .validate.runtimes
-
 
 
 # -----
@@ -426,8 +422,16 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, d
 #' @return The score of the assignment, i.e, the probability of the assignment completing the job by the deadline based on the training set runtimes of the tasks in the job (float).
 #' @export
 #' @examples
+#' assignment <- get.initial.assignment(1,c(10))
+#' runtimes <- matrix(c(1,1), nrow=1, ncol=2)
 #' prob <- get.score(assignment, runtimes, 3600)
 get.score <- function(assignment, runtimes, deadline) {
+
+  # Validate args
+  .validate.assignment(assignment)
+  .validate.runtimes(runtimes)
+  .check.if.positive.real(deadline)
+  length(deadline) == 1 || stop("Invalid argument length: deadline must be a single +ve real number")
 
 	return (0)
 
