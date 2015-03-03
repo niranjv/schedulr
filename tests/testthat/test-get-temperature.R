@@ -40,3 +40,16 @@ test_that("get.temperature validates method correctly", {
   expect_error(get.temperature(25, 100, 1, 'invalid.method'), 'Invalid argument')
 
 })
+
+
+test_that("get.temperature returns the expected value", {
+
+  expect_equal(get.temperature(25, 100, 0), 25)
+  expect_equal(get.temperature(25, 100, 1), 24.75)
+  expect_equal(get.temperature(25, 200, 1), 24.875)
+  expect_equal(get.temperature(25, 50, 1), 24.5)
+  expect_equal(get.temperature(10, 100, 1), 9.9)
+  expect_equal(get.temperature(10, 50, 1), 9.8)
+  expect_equal(get.temperature(25, 100, 15), 21.25)
+
+})
