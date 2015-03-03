@@ -125,9 +125,11 @@ test_that("compare.assignments validates max.temp correctly", {
 
   deadline <- 3600
 
-  expect_error(compare.assignments(cur.assignment, proposed.assignment, runtimes, deadline, ), 'Missing required argument')
-  expect_error(compare.assignments(cur.assignment, proposed.assignment, runtimes, deadline, c()), 'Invalid argument length')
-  expect_error(compare.assignments(cur.assignment, proposed.assignment, runtimes, deadline, 1:2), 'Invalid argument length')
-  expect_error(compare.assignments(cur.assignment, proposed.assignment, runtimes, deadline, 0), 'Invalid argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline), 'Missing required argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, c()), 'Invalid argument length')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, 'a'), 'Non-numeric argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, 1:2), 'Invalid argument length')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, -1), 'Invalid argument')
+  expect_error(compare.assignments(cur.assignment, proposed.assignment, r, deadline, 0), 'Invalid argument')
 
 })
