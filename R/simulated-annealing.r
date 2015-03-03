@@ -402,7 +402,8 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, d
   .check.if.positive.real(deadline)
   length(deadline) == 1 || stop("Invalid argument length: deadline must be a single +ve real number")
 
-  .check.if.positive.integer(max.temp)
+  .check.if.positive.real(max.temp)
+  length(max.temp) == 1 || stop("Invalid argument length: max.temp must be a single +ve real number")
   .check.if.positive.integer(max.iter)
   .check.if.nonnegative.integer(cur.iter)
   if (cur.iter >= max.iter) { stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
@@ -466,7 +467,8 @@ get.score <- function(assignment, runtimes, deadline) {
 get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
 
   # Validate args
-  .check.if.positive.integer(max.temp)
+  .check.if.positive.real(max.temp)
+  length(max.temp) == 1 || stop("Invalid argument length: max.temp must be a single +ve real number")
   .check.if.positive.integer(max.iter)
   .check.if.nonnegative.integer(cur.iter)
   if (cur.iter >= max.iter) { stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
