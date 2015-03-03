@@ -447,7 +447,7 @@ get.score <- function(assignment, runtimes, deadline) {
   .check.if.positive.real(deadline)
   length(deadline) == 1 || stop("Invalid argument length: deadline must be a single +ve real number")
 
-	return (0)
+	return (runif(1))
 
 } # end function - get.score
 
