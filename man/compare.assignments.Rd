@@ -12,7 +12,9 @@ compare.assignments(cur.assignment, proposed.assignment, runtimes,
 
 \item{proposed.assignment}{The proposed assignment (list)}
 
-\item{runtimes.summary}{Training set runtimes for current instance type of cluster (matrix)}
+\item{runtimes}{Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.}
+
+\item{runtimes.summary}{Numeric matrix containing mean and variance of runtimes for each size}
 
 \item{deadline}{Time by which job must be complete (float). Same time units as runtimes}
 
