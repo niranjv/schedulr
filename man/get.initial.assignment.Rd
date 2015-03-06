@@ -4,12 +4,14 @@
 \alias{get.initial.assignment}
 \title{Get initial assignment of jobs to instances in a cluster}
 \usage{
-get.initial.assignment(cluster.size, task.sizes)
+get.initial.assignment(cluster.size, task.sizes, method = "random")
 }
 \arguments{
 \item{cluster.size}{Number of instances in the cluster (+ve integer)}
 
-\item{task.sizes}{Array of task sizes (positive reals)}
+\item{task.sizes}{Array of task sizes (positive reals)``}
+
+\item{method}{Method to use to assign tasks to instances. Must be one of ('random', 'leptf')}
 }
 \value{
 List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance

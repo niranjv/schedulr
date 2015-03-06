@@ -181,9 +181,38 @@ num.bootstrap.reps <- 1000
 
 
 
-#' Get initial assignment of jobs to instances in a cluster
+#' Get initial assignment of tasks to instances in a cluster
 #'
-#' Tasks are assigned to instances in decreasing order of longest processing time first (i.e., Longest Expected Processing Time First rule). Since task runtime is approximately proportional to task size, ordering tasks by runtime is equivalent to ordering tasks by size. The largest task is assigned to the first available machine, the 2nd largest task is assigned to the next available machine and so on.
+#' Tasks are randomly assigned to instances
+#'
+#' @inheritParams get.initial.assignment
+#' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
+#' @examples
+#' init <- get.initial.assignment.random(10, seq(1:30))
+.get.initial.assignment.random <- function(cluster.size, task.sizes) {
+
+	assignment <- vector('list', cluster.size)
+  num.tasks <- length(task.sizes)
+  idx.shuffle <- sample(num.tasks, replace=F)
+  shuffled.task.sizes <- task.sizes[idx.shuffle]
+
+	for (i in 1:num.tasks) {
+
+    # get random instance
+    inst <- sample(length(assignment), 1)
+		assignment[[inst]] <- c(assignment[[inst]], task.sizes[i])
+
+	} # end for - loop over all tasks in order
+
+	return (assignment)
+
+} # end function - get.initial.assignment.leptf
+
+
+
+#' Get initial assignment of tasks to instances in a cluster
+#'
+#' Tasks are assigned to instances in decreasing order of expected processing time (i.e., Longest Expected Processing Time First rule)
 #'
 #' @inheritParams get.initial.assignment
 #' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
@@ -364,18 +393,26 @@ setup.trainingset.runtimes <- function(instance.type, runtimes) {
 #' Get initial assignment of jobs to instances in a cluster
 #'
 #' @param cluster.size Number of instances in the cluster (+ve integer)
-#' @param task.sizes Array of task sizes (positive reals)
+#' @param task.sizes Array of task sizes (positive reals)``
+#' @param method Method to use to assign tasks to instances. Must be one of ('random', 'leptf')
 #' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
 #' @export
 #' @examples
 #' init <- get.initial.assignment(10, seq(1:30))
-get.initial.assignment <- function(cluster.size, task.sizes) {
+get.initial.assignment <- function(cluster.size, task.sizes, method='random') {
 
   # Validate args
   .check.if.positive.integer(cluster.size)
   .check.if.positive.real(task.sizes)
 
-  assignment <- .get.initial.assignment.leptf(cluster.size, task.sizes)
+  if (method=='random') {
+    assignment <- .get.initial.assignment.random(cluster.size, task.sizes)
+  } else if (method=='leptf') {
+    assignment <- .get.initial.assignment.leptf(cluster.size, task.sizes)
+  } else {
+    stop('Invalid argument: ', method, ' is not a valid value for method')
+  } # end if - method=random?
+
   return (assignment)
 
 } # end function - get.initial.assignment
