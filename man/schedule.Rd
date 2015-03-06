@@ -4,7 +4,8 @@
 \alias{schedule}
 \title{Find optimal schedule}
 \usage{
-schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
+schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp,
+  debug = FALSE)
 }
 \arguments{
 \item{job}{Array of integers representing sizes of tasks in job}
@@ -18,6 +19,8 @@ schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
 \item{max.iter}{Max number of iterations to use to find the optimal assignment (integer)}
 
 \item{max.temp}{Max temperature to use in the simulated annealing process (flaot)}
+
+\item{debug}{Print debug info}
 }
 \value{
 A list representing the optimal assignment that could be found under the given constraints
@@ -26,12 +29,12 @@ A list representing the optimal assignment that could be found under the given c
 Want an assignment with >= .95 probability of completing job by the deadline with the lowest makespan (cost)
 }
 \examples{
-job <- c(1,60,100,100,100,230,400,800,2000,2700)
-deadline <- 600
+job <- c(1,60,100)
+deadline <- 300
 cluster.instance.type <- 'm3xlarge'
-cluster.size <- 3
-max.iter <- 100
-max.temp <- 25
+cluster.size <- 2
+max.iter <- 2
+max.temp <- 0.5
 data(m3xlarge.runtimes.expdist)
 setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
 best.schedule <- schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
