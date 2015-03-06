@@ -77,34 +77,118 @@ test_that("get.score validates runtimes correctly", {
 })
 
 
+test_that("get.score validates runtimes.summary correctly", {
+
+  assignment <- get.initial.assignment(1, c(10))
+
+  r <- matrix(nrow=2, ncol=2)
+  r[1, 1] <- 1; r[1, 2] <- 1
+  r[2, 1] <- 1; r[2, 2] <- 1
+
+  expect_error(get.score(assignment, r, ), 'Missing required argument')
+  expect_error(get.score(assignment, r, c()), 'Invalid argument type')
+  expect_error(get.score(assignment, r, ''), 'Invalid argument type')
+  expect_error(get.score(assignment, r, 1), 'Invalid argument type')
+  expect_error(get.score(assignment, r, 1:2), 'Invalid argument type')
+  expect_error(get.score(assignment, r, c('a', 'b')), 'Invalid argument type')
+  expect_error(get.score(assignment, r, list(1, 1)), 'Invalid argument type')
+  expect_error(get.score(assignment, r, data.frame(1, 1)), 'Invalid argument type')
+
+  rs <- matrix(nrow=0, ncol=0)
+  expect_error(get.score(assignment, r, rs), 'Invalid argument dimensions')
+
+  rs <- matrix(nrow=0, ncol=1)
+  expect_error(get.score(assignment, r, rs), 'Invalid argument dimensions')
+
+  rs <- matrix(nrow=1, ncol=0)
+  expect_error(get.score(assignment, r, rs), 'Invalid argument dimensions')
+
+  rs <- matrix(nrow=1, ncol=1)
+  rs[1, 1] <- 1
+  expect_error(get.score(assignment, r, rs), 'Invalid argument dimensions')
+
+  rs <- matrix(nrow=1, ncol=2)
+  rs[1, 1] <- 1
+  rs[1, 2] <- 1
+  expect_error(get.score(assignment, r, rs), 'Invalid argument dimensions')
+
+  rs <- matrix(nrow=2, ncol=1)
+  rs[1, 1] <- 1
+  rs[2, 1] <- 1
+  expect_error(get.score(assignment, r, rs), 'Invalid argument dimensions')
+
+  rs <- matrix(nrow=2, ncol=2)
+  rs[1, 1] <- 1; rs[1, 2] <- 1
+  rs[2, 1] <- 1; rs[2, 2] <- 1
+  expect_error(get.score(assignment, r, rs), 'Invalid argument dimensions')
+
+  rs <- matrix(nrow=1, ncol=3)
+  rs[1, 1] <- -1
+  rs[1, 2] <- 1
+  rs[1, 3] <- 1
+  expect_error(get.score(assignment, r, rs), 'Invalid argument')
+
+  rs <- matrix(nrow=1, ncol=3)
+  rs[1, 1] <- 1
+  rs[1, 2] <- -1
+  rs[1, 3] <- 1
+  expect_error(get.score(assignment, r, rs), 'Invalid argument')
+
+  rs <- matrix(nrow=1, ncol=3)
+  rs[1, 1] <- 1
+  rs[1, 2] <- 1
+  rs[1, 3] <- -1
+  expect_error(get.score(assignment, r, rs), 'Invalid argument')
+
+  rs <- matrix(nrow=1, ncol=3)
+  rs[1, 1] <- 'a'
+  rs[1, 2] <- 1
+  rs[1, 3] <- 1
+  expect_error(get.score(assignment, r, rs), 'Invalid argument')
+
+})
+
+
 test_that("get.score validates deadline correctly", {
 
   assignment <- get.initial.assignment(1, c(10))
+
   r <- matrix(nrow=1, ncol=2)
   r[1, 1] <- 1
   r[1, 2] <- 1
 
-  expect_error(get.score(assignment, r), 'Missing required argument')
-  expect_error(get.score(assignment, r, c()), 'Invalid argument length')
-  expect_error(get.score(assignment, r, ''), 'Non-numeric argument')
+  rs <- matrix(nrow=1, ncol=3)
+  rs[1, 1] <- 1
+  rs[1, 2] <- 1
+  rs[1, 3] <- 1
 
-  expect_error(get.score(assignment, r, c()), 'Invalid argument length')
-  expect_error(get.score(assignment, r, 1:2), 'Invalid argument length')
-  expect_error(get.score(assignment, r, 0), 'Invalid argument')
+  expect_error(get.score(assignment, r, rs), 'Missing required argument')
+  expect_error(get.score(assignment, r, rs, c()), 'Invalid argument length')
+  expect_error(get.score(assignment, r, rs, ''), 'Non-numeric argument')
+
+  expect_error(get.score(assignment, r, rs, c()), 'Invalid argument length')
+  expect_error(get.score(assignment, r, rs, 1:2), 'Invalid argument length')
+  expect_error(get.score(assignment, r, rs, 0), 'Invalid argument')
 
 })
 
 
 test_that("get.score returns a valid value", {
 
-  assignment <- get.initial.assignment(1, c(10))
+  assignment <- get.initial.assignment(1, c(1))
+
   r <- matrix(nrow=1, ncol=2)
   r[1, 1] <- 1
   r[1, 2] <- 1
 
-  s <- get.score(assignment, r, 3600)
-  expect_true(!is.null(s)) # must always return a value...
-  expect_true(is.numeric(s)) # ... that is a number...
-  expect_true(s >= 0 && s <= 1) # between 0 and 1
+  rs <- matrix(nrow=1, ncol=3)
+  rs[1, 1] <- 1
+  rs[1, 2] <- 1
+  rs[1, 3] <- 1
+
+  s <- get.score(assignment, r, rs, 10)
+  expect_true(!is.null(s$score)) # must always return a value...
+  expect_true(is.numeric(s$score)) # ... that is a number...
+  expect_true(s$score >= 0 && s$score <= 1) # between 0 and 1
 
 })
