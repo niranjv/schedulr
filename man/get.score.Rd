@@ -4,12 +4,14 @@
 \alias{get.score}
 \title{Get score for input assignment}
 \usage{
-get.score(assignment, runtimes, deadline)
+get.score(assignment, runtimes, runtimes.summary, deadline)
 }
 \arguments{
 \item{assignment}{The assignment which needs to be scored (list)}
 
-\item{runtimes}{Runtimes used to determine score (matrix)}
+\item{runtimes}{Training set runtimes (matrix)}
+
+\item{runtimes.summary}{Summary of training set runtimes (matrix)}
 
 \item{deadline}{Time by which job must complete (float; same units as runtimes)}
 }
@@ -20,8 +22,8 @@ The score of the assignment, i.e, the probability of the assignment completing t
 Get score for input assignment
 }
 \examples{
-assignment <- get.initial.assignment(1,c(10))
-runtimes <- matrix(c(1,1), nrow=1, ncol=2)
-prob <- get.score(assignment, runtimes, 3600)
+assignment <- get.initial.assignment(2, c(1,60,100,100,100,230,400,800,2000,2700))
+runtimes <- matrix(c(1,48,2555), nrow=1, ncol=3)
+prob <- get.score(assignment, runtimes, 600)
 }
 

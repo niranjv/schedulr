@@ -26,7 +26,7 @@ The input assignment is modified in one of several different ways, including
 Only the first 2 methods are currently implemented with an equal probability of selecting either method.
 }
 \examples{
-assignment <- get.initial.assignment(10, seq(1:30))
+assignment <- get.initial.assignment(10, 1:30)
 candidate.assignment <- get.neighbor(assignment)
 }
 

@@ -26,14 +26,14 @@ A list representing the optimal assignment that could be found under the given c
 Want an assignment with >= .95 probability of completing job by the deadline with the lowest makespan (cost)
 }
 \examples{
-job <- seq(1:30)
-deadline <- 3600
+job <- c(1,60,100,100,100,230,400,800,2000,2700)
+deadline <- 600
 cluster.instance.type <- 'm3xlarge'
-cluster.size <- 10
-max.iter <- 10
+cluster.size <- 3
+max.iter <- 100
 max.temp <- 25
 data(m3xlarge.runtimes.expdist)
-setup.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
+setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
 best.schedule <- schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
 }
 

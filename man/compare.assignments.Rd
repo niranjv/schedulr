@@ -4,15 +4,15 @@
 \alias{compare.assignments}
 \title{Compare 2 assignments based on their score}
 \usage{
-compare.assignments(cur.assignment, proposed.assignment, runtimes, deadline,
-  max.temp, max.iter, cur.iter)
+compare.assignments(cur.assignment, proposed.assignment, runtimes,
+  runtimes.summary, deadline, max.temp, max.iter, cur.iter)
 }
 \arguments{
 \item{cur.assignment}{The current best assigment (list)}
 
 \item{proposed.assignment}{The proposed assignment (list)}
 
-\item{runtimes}{Training set runtimes for current instance type of cluster (matrix)}
+\item{runtimes.summary}{Training set runtimes for current instance type of cluster (matrix)}
 
 \item{deadline}{Time by which job must be complete (float). Same time units as runtimes}
 
