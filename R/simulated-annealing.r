@@ -259,7 +259,7 @@ num.bootstrap.reps <- 1000
 .get.initial.assignment.leptf <- function(cluster.size, task.sizes) {
 
 	assignment <- vector('list', cluster.size)
-	sorted.task.sizes <- sort(task.sizes)
+	sorted.task.sizes <- sort(task.sizes, decreasing=TRUE)
   num.tasks <- length(sorted.task.sizes)
 
 	for (i in 1:num.tasks) {
