@@ -46,7 +46,7 @@ num.bootstrap.reps <- 1000
 
 #' Verify that input values are valid
 #'
-#' @param task.sizes Array of values to validate
+#' @param value Array of values to validate
 #' @examples
 #' '(c(1.2,3.4))
 #' .check.if.positive.real(3.14)
@@ -61,6 +61,23 @@ num.bootstrap.reps <- 1000
 } # end function - .check.if.positive.real
 
 
+#' Verify that input values are valid
+#'
+#' @param value Array of values to validate
+#' @examples
+#' .check.if.nonnegative.real(c(1.2, 3.4))
+#' .check.if.nonnegative.real(3.14)
+#' .check.if.nonnegative.real('a')
+.check.if.nonnegative.real <- function(value) {
+
+  if (missing(value)) { stop('Missing required argument: Must specify a value') }
+  if (length(value) == 0) { stop('Invalid argument length: Must specify a value') }
+  if (!is.numeric(value)) { stop('Non-numeric argument: Must specify a valid +ve real number') }
+  if (any(value < 0)) { stop('Invalid argument: Value must be >= 0') }
+
+} # end function - .check.if.nonnegative.real
+
+
 #' Verify that assignment is valid
 #'
 #' @param assignment Array of task sizes
@@ -70,13 +87,34 @@ num.bootstrap.reps <- 1000
 #' .validate.assignment(b<-NULL)
 .validate.assignment <- function(assignment) {
 
-  if (missing(assignment)) { stop("Missing required argument: assignment") }
-  if (!is.list(assignment)) { stop("Invalid argument type: assignment must be a list") }
-  if (length(assignment) == 0) { stop("Invalid argument length: assignment must contain at least 1 instance") }
-  if (!is.numeric(unlist(assignment))) { stop("Non-numeric argument: tasks sizes must be valid numbers") }
-  if (sum((unlist(assignment) <= 0) > 0)) { stop("Invalid argument: tasks sizes must be > 0") }
+  !missing(assignment) || stop("Missing required argument: assignment")
+  is.list(assignment) || stop("Invalid argument type: assignment must be a list")
+  length(assignment) != 0 || stop("Invalid argument length: assignment must contain at least 1 instance")
+  is.numeric(unlist(assignment)) || stop("Non-numeric argument: tasks sizes must be valid numbers")
+  sum(unlist(assignment) <= 0) == 0 || stop("Invalid argument: tasks sizes must be > 0")
 
 } # end function - .validate.assignment
+
+
+
+#' Verify that assignment attributes are valid
+#'
+#' @param assignment Array of task sizes
+#' @examples
+#' a <- get.initial.assignment(2, 3)
+#' attr(a, 'score') <- 0
+#' attr(a, 'runtime95pct') <- 0
+#' attr(a, 'runtime99pct') <- 0
+#' .validate.assignment.attributes(a)
+#' .validate.assignment.attributes(b<-NULL)
+.validate.assignment.attributes <- function(assignment) {
+
+  attr(assignment, 'score') >= 0 || stop("Invalid argument: assignment score must be >= 0")
+  attr(assignment, 'runtime95pct') >= 0 || stop("Invalid argument: assignment runtime95pct must be >= 0")
+  attr(assignment, 'runtime99pct') >= 0 || stop("Invalid argument: assignment runtime99pct must be >= 0")
+
+} # end function - .validate.assignment
+
 
 
 #' Verify that the assignment has the minimum number of tasks required
@@ -206,7 +244,7 @@ num.bootstrap.reps <- 1000
 
 	return (assignment)
 
-} # end function - get.initial.assignment.leptf
+} # end function - get.initial.assignment.random
 
 
 
@@ -577,8 +615,8 @@ move.tasks <- function(assignment, num.tasks, exchange=F) {
 #'
 #' Scores are calculated for both assignments. If the score of the proposed assignment is lower than the score for the current assignment, the proposed assignment and score are returned. If the score of the proposed assignment is greater than or equal to the current assignment, the a function of the current temperature and the 2 scores is used to determine which assignment to return.
 #'
-#' @param cur.assignment The current best assigment (list)
-#' @param proposed.assignment The proposed assignment (list)
+#' @param cur.assignment Current assigment with score attribute (list)
+#' @param proposed.assignment Proposed assignment with no score (list)
 #' @param runtimes Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
 #' @param runtimes.summary Numeric matrix containing mean and variance of runtimes for each size
 #' @param deadline Time by which job must be complete (float). Same time units as runtimes
@@ -593,6 +631,8 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, r
 
   # Validate args
   .validate.assignment(cur.assignment)
+  .validate.assignment.attributes(cur.assignment)
+  .check.if.nonnegative.real(attr(cur.assignment, 'score'))
   .validate.assignment(proposed.assignment)
 
   .validate.runtimes(runtimes)
@@ -609,38 +649,37 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, r
   .check.if.nonnegative.integer(cur.iter)
   if (cur.iter >= max.iter) { stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
 
-	cur.score <- get.score(cur.assignment, runtimes, runtimes.summary, deadline)
-	proposed.score <- get.score(proposed.assignment, runtimes, runtimes.summary, deadline)
+	proposed.assignment <- get.score(proposed.assignment, runtimes, runtimes.summary, deadline)
 
-  cat('cur.score: \n')
-  print(cur.score)
+  cat('cur.assignment: \n')
+  print(cur.assignment)
   cat('\n')
 
-  cat('proposed.score \n')
-  print(proposed.score)
+  cat('proposed.assignment \n')
+  print(proposed.assignment)
   cat('\n')
 
-	if (proposed.score$score >= cur.score$score) {
-    cat('proposed.score is higher. Returning PROPOSED \n')
+	if (attr(proposed.assignment, 'score') >= attr(cur.assignment, 'score')) {
+    cat('PROPOSED.score >= current.score. Returning PROPOSED \n')
     # new assignment has greater or equal prob. of completing job by deadline than current assignment
-    result <- list("assignment"=proposed.assignment, "score"=proposed.score$score, "runtime95pct"=proposed.score$runtime95pct, "runtime99pct"=proposed.score$runtime99pct)
+    result <- proposed.assignment
 
   } else {
 	  cat('proposed.score is lower \n')
 		temp <- get.temperature(max.temp, max.iter, cur.iter)
-		lhs <- round(exp((proposed.score$score - cur.score$score)/temp), 2)
+		lhs <- round(exp((attr(proposed.assignment, 'score') - attr(cur.assignment, 'score'))/temp), 2)
 		rhs <- round(runif (1, min=0, max=1), 2)
     cat('temp=',temp, ' lhs=',lhs, ' rhs=',rhs, '\n')
 
 		if (lhs > rhs) {
       cat('lhs > rhs; returning PROPOSED \n')
-      result <- list("assignment"=proposed.assignment, "score"=proposed.score$score, "runtime95pct"=proposed.score$runtime95pct, "runtime99pct"=proposed.score$runtime99pct)
+      result <- proposed.assignment
 		} else {
       cat('lhs <= rhs; returning CURRENT \n')
-      result <- list("assignment"=cur.assignment, "score"=cur.score$score, "runtime95pct"=cur.score$runtime95pct, "runtime99pct"=cur.score$runtime99pct)
+      result <- cur.assignment
 		} # end if - lhs > rhs?
 
-	} # end if - proposed.score < cur.score?
+	} # end if - proposed.score >= cur.score?
 
   return (result)
 
@@ -654,13 +693,13 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, r
 #' @param runtimes Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
 #' @param runtimes.summary Numeric matrix containing mean and variance of runtimes for each size
 #' @param deadline Time by which job must complete (float; same units as runtimes)
-#' @return The score of the assignment, i.e, the probability of the assignment completing the job by the deadline based on the training set runtimes of the tasks in the job (float).
+#' @return The input assignment with a value for the score attribute. Score is the probability of the assignment completing the job by the deadline based on the training set runtimes of the tasks in the job (float).
 #' @export
 #' @examples
 #' assignment <- get.initial.assignment(2, c(1,1,1,1))
 #' runtimes <- matrix(c(1,48), nrow=1, ncol=2)
 #' runtimes.summary <- matrix(c(1,48,2555), nrow=1, ncol=3)
-#' prob <- get.score(assignment, runtimes, runtimes.summary, 600)
+#' assignment <- get.score(assignment, runtimes, runtimes.summary, 600)
 get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
 
   # Validate args
@@ -722,8 +761,12 @@ get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
 
   # Return score & times of instance with least prob of completing by deadline
   min.idx <- which.min(scores[,1])
-  result <- list('assignment'=assignment, 'score'=scores[min.idx, 1], 'runtime95pct'=scores[min.idx, 2], 'runtime99pct'=scores[min.idx, 3])
-  return (result)
+
+  attr(assignment, 'score') <- scores[min.idx, 1]
+  attr(assignment, 'runtime95pct') <- scores[min.idx, 2]
+  attr(assignment, 'runtime99pct') <- scores[min.idx, 3]
+
+  return (assignment)
 
 } # end function - get.score
 
@@ -799,20 +842,22 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
   runtimes.summary <- .get.trainingset.runtimes(cluster.instance.type, summary=T)
 
 	cur.assignment <- get.initial.assignment(cluster.size, job)
-	cur.score <- get.score(cur.assignment, runtimes, runtimes.summary, deadline)
+	cur.assignment <- get.score(cur.assignment, runtimes, runtimes.summary, deadline)
 
-	best <- cur.score
+	best.assignment <- cur.assignment
 
-  scores.timeseries <- matrix(nrow=(max.iter+1), ncol=6)
-  colnames(scores.timeseries) <- c(paste('Acpt_', deadline, 's', sep=''), 'Acpt_95%', 'Acpt_99%', paste('Best_', deadline, 's', sep=''), 'Best_95%', 'Best_99%')
+  if (debug) {
+    scores.timeseries <- matrix(nrow=(max.iter+1), ncol=6)
+    colnames(scores.timeseries) <- c(paste('Acpt_', deadline, 's', sep=''), 'Acpt_95%', 'Acpt_99%', paste('Best_', deadline, 's', sep=''), 'Best_95%', 'Best_99%')
 
-  scores.timeseries[1,1] <- cur.score$score
-  scores.timeseries[1,2] <- cur.score$runtime95pct
-  scores.timeseries[1,3] <- cur.score$runtime99pct
+    scores.timeseries[1,1] <- attr(cur.assignment, 'score')
+    scores.timeseries[1,2] <- attr(cur.assignment, 'runtime95pct')
+    scores.timeseries[1,3] <- attr(cur.assignment, 'runtime99pct')
 
-  scores.timeseries[1,4] <- cur.score$score
-  scores.timeseries[1,5] <- cur.score$runtime95pct
-  scores.timeseries[1,6] <- cur.score$runtime99pct
+    scores.timeseries[1,4] <- attr(cur.assignment, 'score')
+    scores.timeseries[1,5] <- attr(cur.assignment, 'runtime95pct')
+    scores.timeseries[1,6] <- attr(cur.assignment, 'runtime99pct')
+  } # end if - debug?
 
 
 	# go from 0 to 1 less than max.iter
@@ -822,25 +867,27 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
     if (debug) cat('\n\n==========\nSA iter: ', i, '\n', '==========\n\n', sep='')
 
 		proposed.assignment <- get.neighbor(cur.assignment)
-		accepted <- compare.assignments(cur.assignment, proposed.assignment, runtimes, runtimes.summary, deadline, max.temp, max.iter, i)
-		cur.assignment <- accepted$assignment
+		accepted.assignment <- compare.assignments(cur.assignment, proposed.assignment, runtimes, runtimes.summary, deadline, max.temp, max.iter, i)
+		cur.assignment <- accepted.assignment
 
-    scores.timeseries[(i+2),1] <- accepted$score
-    scores.timeseries[(i+2),2] <- accepted$runtime95pct
-    scores.timeseries[(i+2),3] <- accepted$runtime99pct
+    # update best score, if necessary
+    if (attr(accepted.assignment, 'score') > attr(best.assignment, 'score')) best.assignment <- accepted.assignment
 
-		if (accepted$score > best$score) {
-      best <- accepted
-		} # end if - update best score
-    scores.timeseries[(i+2),4] <- best$score
-    scores.timeseries[(i+2),5] <- best$runtime95pct
-    scores.timeseries[(i+2),6] <- best$runtime99pct
+    if (debug) {
+      scores.timeseries[(i+2),1] <- attr(accepted.assignment, 'score')
+      scores.timeseries[(i+2),2] <- attr(accepted.assignment, 'runtime95pct')
+      scores.timeseries[(i+2),3] <- attr(accepted.assignment, 'runtime99pct')
+
+      scores.timeseries[(i+2),4] <- attr(best.assignment, 'score')
+      scores.timeseries[(i+2),5] <- attr(best.assignment, 'runtime95pct')
+      scores.timeseries[(i+2),6] <- attr(best.assignment, 'runtime99pct')
+    } # end if - debug?
 
 	} # end for - loop over all iterations
 
-	cat('\nBest score: ', best$score, '\n')
+	cat('\nBest score: ', attr(best.assignment, 'score'), '\n')
 	cat('Best assignment: \n')
-	print(best$assignment)
+	print(best.assignment)
   cat('\n\n')
 
   d <- proc.time()-start.time
@@ -850,9 +897,8 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
     sink()
     filename <- paste(output.prefix, '-scores-timeseries.csv', sep='')
     write.csv(scores.timeseries, filename, quote=F, row.names=F)
-  }
+  } # end if - debug?
 
-
-  return (best)
+  return (best.assignment)
 
 } # end function - schedule

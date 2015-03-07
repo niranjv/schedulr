@@ -8,9 +8,9 @@ compare.assignments(cur.assignment, proposed.assignment, runtimes,
   runtimes.summary, deadline, max.temp, max.iter, cur.iter)
 }
 \arguments{
-\item{cur.assignment}{The current best assigment (list)}
+\item{cur.assignment}{Current assigment with score attribute (list)}
 
-\item{proposed.assignment}{The proposed assignment (list)}
+\item{proposed.assignment}{Proposed assignment with no score (list)}
 
 \item{runtimes}{Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.}
 

@@ -16,7 +16,7 @@ get.score(assignment, runtimes, runtimes.summary, deadline)
 \item{deadline}{Time by which job must complete (float; same units as runtimes)}
 }
 \value{
-The score of the assignment, i.e, the probability of the assignment completing the job by the deadline based on the training set runtimes of the tasks in the job (float).
+The input assignment with a value for the score attribute. Score is the probability of the assignment completing the job by the deadline based on the training set runtimes of the tasks in the job (float).
 }
 \description{
 Get score for input assignment
@@ -25,6 +25,6 @@ Get score for input assignment
 assignment <- get.initial.assignment(2, c(1,1,1,1))
 runtimes <- matrix(c(1,48), nrow=1, ncol=2)
 runtimes.summary <- matrix(c(1,48,2555), nrow=1, ncol=3)
-prob <- get.score(assignment, runtimes, runtimes.summary, 600)
+assignment <- get.score(assignment, runtimes, runtimes.summary, 600)
 }
 

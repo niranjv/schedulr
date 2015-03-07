@@ -20,6 +20,9 @@ test_that("compare.assignments validates cur.assignment correctly", {
 test_that("compare.assignments validates proposed.assignment correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
+  attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'runtime95pct') <- 0
+  attr(cur.assignment, 'runtime99pct') <- 0
 
   expect_error(compare.assignments(cur.assignment, ), 'Missing required argument')
   expect_error(compare.assignments(cur.assignment, ''), 'Invalid argument type')
@@ -38,6 +41,10 @@ test_that("compare.assignments validates proposed.assignment correctly", {
 test_that("compare.assignments validates runtimes correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
+  attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'runtime95pct') <- 0
+  attr(cur.assignment, 'runtime99pct') <- 0
+
   proposed.assignment <- get.initial.assignment(2, c(10))
 
   expect_error(compare.assignments(cur.assignment, proposed.assignment, ), 'Missing required argument')
@@ -105,6 +112,10 @@ test_that("compare.assignments validates runtimes correctly", {
 test_that("compare.assignments validates runtimes.summary correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
+  attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'runtime95pct') <- 0
+  attr(cur.assignment, 'runtime99pct') <- 0
+
   proposed.assignment <- get.initial.assignment(2, c(10))
 
   r <- matrix(nrow=2, ncol=2)
@@ -178,6 +189,10 @@ test_that("compare.assignments validates runtimes.summary correctly", {
 test_that("compare.assignments validates deadline correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
+  attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'runtime95pct') <- 0
+  attr(cur.assignment, 'runtime99pct') <- 0
+
   proposed.assignment <- get.initial.assignment(2, c(10))
 
   r <- matrix(nrow=1, ncol=2)
@@ -203,6 +218,10 @@ test_that("compare.assignments validates deadline correctly", {
 test_that("compare.assignments validates max.temp correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
+  attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'runtime95pct') <- 0
+  attr(cur.assignment, 'runtime99pct') <- 0
+
   proposed.assignment <- get.initial.assignment(2, c(10))
 
   r <- matrix(nrow=1, ncol=2)
@@ -229,6 +248,10 @@ test_that("compare.assignments validates max.temp correctly", {
 test_that("compare.assignments validates max.iter correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
+  attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'runtime95pct') <- 0
+  attr(cur.assignment, 'runtime99pct') <- 0
+
   proposed.assignment <- get.initial.assignment(2, c(10))
 
   r <- matrix(nrow=1, ncol=2)
@@ -257,6 +280,10 @@ test_that("compare.assignments validates max.iter correctly", {
 test_that("compare.assignments validates cur.iter correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
+  attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'runtime95pct') <- 0
+  attr(cur.assignment, 'runtime99pct') <- 0
+
   proposed.assignment <- get.initial.assignment(2, c(10))
 
   r <- matrix(nrow=1, ncol=2)
@@ -285,17 +312,27 @@ test_that("compare.assignments validates cur.iter correctly", {
 
 test_that("compare.assignments returns a valid value", {
 
-  cur.assignment <- get.initial.assignment(1, c(10))
-  proposed.assignment <- get.initial.assignment(2, c(10))
+  cur.assignment <- get.initial.assignment(1, c(10, 20))
+  attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'runtime95pct') <- 0
+  attr(cur.assignment, 'runtime99pct') <- 0
 
-  r <- matrix(nrow=1, ncol=2)
+  proposed.assignment <- get.initial.assignment(2, c(10, 20))
+
+  r <- matrix(nrow=2, ncol=2)
   r[1, 1] <- 10 # size
   r[1, 2] <- 23.5 # runtime for this sample
+  r[2, 1] <- 20 # size
+  r[2, 2] <- 45 # runtime for this sample
 
-  rs <- matrix(nrow=1, ncol=3)
+  rs <- matrix(nrow=2, ncol=3)
   rs[1, 1] <- 10 # size
   rs[1, 2] <- 23.5 # mean runtime
   rs[1, 3] <- 2.5 # variance of runtime
+
+  rs[2, 1] <- 20 # size
+  rs[2, 2] <- 45 # mean runtime
+  rs[2, 3] <- 5 # variance of runtime
 
   deadline <- 60
   max.temp <- 25
@@ -304,8 +341,12 @@ test_that("compare.assignments returns a valid value", {
 
   accepted <- compare.assignments(cur.assignment, proposed.assignment, r, rs, deadline, max.temp, max.iter, cur.iter)
   expect_is(accepted, 'list')
-  expect_is(accepted[[1]], 'list')
-  expect_is(accepted[[2]], 'numeric')
-  expect_true(accepted[[2]] >= 0 && accepted[[2]] <= 1)
+  expect_is(attr(accepted, 'score'), 'numeric')
+  expect_is(attr(accepted, 'runtime95pct'), 'numeric')
+  expect_is(attr(accepted, 'runtime99pct'), 'numeric')
+
+  expect_true(attr(accepted, 'score') >= 0 && attr(accepted, 'score') <= 1)
+  expect_true(attr(accepted, 'runtime95pct') > 0)
+  expect_true(attr(accepted, 'runtime99pct') > 0)
 
 })
