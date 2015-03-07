@@ -238,7 +238,7 @@ num.bootstrap.reps <- 1000
 
     # get random instance
     inst <- sample(length(assignment), 1)
-		assignment[[inst]] <- c(assignment[[inst]], task.sizes[i])
+		assignment[[inst]] <- c(assignment[[inst]], shuffled.task.sizes[i])
 
 	} # end for - loop over all tasks in order
 
