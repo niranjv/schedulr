@@ -438,8 +438,9 @@ setup.trainingset.runtimes <- function(instance.type, runtimes) {
 #' Get initial assignment of jobs to instances in a cluster
 #'
 #' @param cluster.size Number of instances in the cluster (+ve integer)
-#' @param task.sizes Array of task sizes (positive reals)``
-#' @param method Method to use to assign tasks to instances. Must be one of ('random', 'leptf')
+#' @param task.sizes Array of task sizes (+ve reals)
+#' @param runtimes.summary Numeric matrix containing mean and variance of runtimes for each size. Must be supplied when method='leptf'
+#' @param method Method to use to assign tasks to instances. Must be one of ('random', 'leptf').
 #' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
 #' @export
 #' @examples

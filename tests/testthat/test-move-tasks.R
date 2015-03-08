@@ -62,6 +62,9 @@ test_that("move.tasks handles single instance case", {
 
 test_that("move.tasks handles single task case", {
 
+  rs <- matrix(nrow=1, ncol=3)
+  rs[1, 1] <- 10; rs[1, 2] <- 23.5; rs[1, 3] <- 3.5
+  
   assignment <- get.initial.assignment(2, c(10), rs, method='leptf')
   new.assignment <- move.tasks(assignment, 1)
   expect_is(new.assignment, 'list')

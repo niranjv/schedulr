@@ -10,9 +10,11 @@ get.initial.assignment(cluster.size, task.sizes, runtimes.summary,
 \arguments{
 \item{cluster.size}{Number of instances in the cluster (+ve integer)}
 
-\item{task.sizes}{Array of task sizes (positive reals)``}
+\item{task.sizes}{Array of task sizes (+ve reals)}
 
-\item{method}{Method to use to assign tasks to instances. Must be one of ('random', 'leptf')}
+\item{runtimes.summary}{Numeric matrix containing mean and variance of runtimes for each size. Must be supplied when method='leptf'}
+
+\item{method}{Method to use to assign tasks to instances. Must be one of ('random', 'leptf').}
 }
 \value{
 List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
