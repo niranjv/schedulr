@@ -42,12 +42,17 @@ test_that("move.tasks handles single instance case", {
   expect_is(new.assignment, 'list')
   expect_equal(assignment, new.assignment)
 
-  assignment <- get.initial.assignment(1, c(10, 20, 30), method='leptf')
+  rs <- matrix(nrow=3, ncol=3)
+  rs[1, 1] <- 10; rs[1, 2] <- 23.5; rs[1, 3] <- 3.5
+  rs[2, 1] <- 20; rs[2, 2] <- 33.5; rs[2, 3] <- 4.5
+  rs[3, 1] <- 30; rs[3, 2] <- 43.5; rs[3, 3] <- 5.5
+
+  assignment <- get.initial.assignment(1, c(10, 20, 30), rs, method='leptf')
   new.assignment <- move.tasks(assignment, 1)
   expect_is(new.assignment, 'list')
   expect_equal(assignment, new.assignment)
 
-  assignment <- get.initial.assignment(1, c(10, 20, 30), method='leptf')
+  assignment <- get.initial.assignment(1, c(10, 20, 30), rs, method='leptf')
   new.assignment <- move.tasks(assignment, 1, exchange=T)
   expect_is(new.assignment, 'list')
   expect_equal(assignment, new.assignment)
@@ -57,13 +62,13 @@ test_that("move.tasks handles single instance case", {
 
 test_that("move.tasks handles single task case", {
 
-  assignment <- get.initial.assignment(2, c(10), method='leptf')
+  assignment <- get.initial.assignment(2, c(10), rs, method='leptf')
   new.assignment <- move.tasks(assignment, 1)
   expect_is(new.assignment, 'list')
   expect_equal(assignment[[1]], new.assignment[[2]])
   expect_equal(assignment[[2]], new.assignment[[1]])
 
-  assignment <- get.initial.assignment(3, c(10), method='leptf')
+  assignment <- get.initial.assignment(3, c(10), rs, method='leptf')
   new.assignment <- move.tasks(assignment, 1)
   expect_is(new.assignment, 'list')
   expect_equal(new.assignment[[1]], NULL)
@@ -107,7 +112,11 @@ test_that("move.tasks fails when no instance has sufficient # tasks to move", {
 
 test_that("move.tasks exchanges 1 task between 2 instances", {
 
-  assignment <- get.initial.assignment(2, c(10, 20), method='leptf')
+  rs <- matrix(nrow=2, ncol=3)
+  rs[1, 1] <- 10; rs[1, 2] <- 23.5; rs[1, 3] <- 3.5
+  rs[2, 1] <- 20; rs[2, 2] <- 33.5; rs[2, 3] <- 4.5
+
+  assignment <- get.initial.assignment(2, c(10, 20), rs, method='leptf')
   new.assignment <- move.tasks(assignment, 1, exchange=T)
   expect_equal(assignment[[1]], new.assignment[[2]])
   expect_equal(assignment[[2]], new.assignment[[1]])
@@ -117,7 +126,13 @@ test_that("move.tasks exchanges 1 task between 2 instances", {
 
 test_that("move.tasks exchanges 2 tasks between 2 instances", {
 
-  assignment <- get.initial.assignment(2, c(10, 20, 30, 40), method='leptf')
+  rs <- matrix(nrow=4, ncol=3)
+  rs[1, 1] <- 10; rs[1, 2] <- 23.5; rs[1, 3] <- 3.5
+  rs[2, 1] <- 20; rs[2, 2] <- 33.5; rs[2, 3] <- 4.5
+  rs[3, 1] <- 30; rs[3, 2] <- 43.5; rs[3, 3] <- 5.5
+  rs[4, 1] <- 40; rs[4, 2] <- 53.5; rs[4, 3] <- 6.5
+
+  assignment <- get.initial.assignment(2, c(10, 20, 30, 40), rs, method='leptf')
   new.assignment <- move.tasks(assignment, 2, exchange=T)
   expect_equal(sort(assignment[[1]]), sort(new.assignment[[2]]))
   expect_equal(sort(assignment[[2]]), sort(new.assignment[[1]]))
