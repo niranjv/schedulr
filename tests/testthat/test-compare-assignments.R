@@ -21,6 +21,7 @@ test_that("compare.assignments validates proposed.assignment correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
   attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'deadline') <- 100
   attr(cur.assignment, 'runtime95pct') <- 0
   attr(cur.assignment, 'runtime99pct') <- 0
 
@@ -42,6 +43,7 @@ test_that("compare.assignments validates runtimes correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
   attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'deadline') <- 100
   attr(cur.assignment, 'runtime95pct') <- 0
   attr(cur.assignment, 'runtime99pct') <- 0
 
@@ -113,6 +115,7 @@ test_that("compare.assignments validates runtimes.summary correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
   attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'deadline') <- 100
   attr(cur.assignment, 'runtime95pct') <- 0
   attr(cur.assignment, 'runtime99pct') <- 0
 
@@ -190,6 +193,7 @@ test_that("compare.assignments validates deadline correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
   attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'deadline') <- 100
   attr(cur.assignment, 'runtime95pct') <- 0
   attr(cur.assignment, 'runtime99pct') <- 0
 
@@ -219,6 +223,7 @@ test_that("compare.assignments validates max.temp correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
   attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'deadline') <- 100
   attr(cur.assignment, 'runtime95pct') <- 0
   attr(cur.assignment, 'runtime99pct') <- 0
 
@@ -249,6 +254,7 @@ test_that("compare.assignments validates max.iter correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
   attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'deadline') <- 100
   attr(cur.assignment, 'runtime95pct') <- 0
   attr(cur.assignment, 'runtime99pct') <- 0
 
@@ -281,6 +287,7 @@ test_that("compare.assignments validates cur.iter correctly", {
 
   cur.assignment <- get.initial.assignment(1, c(10))
   attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'deadline') <- 100
   attr(cur.assignment, 'runtime95pct') <- 0
   attr(cur.assignment, 'runtime99pct') <- 0
 
@@ -314,6 +321,7 @@ test_that("compare.assignments returns a valid value", {
 
   cur.assignment <- get.initial.assignment(1, c(10, 20))
   attr(cur.assignment, 'score') <- 0
+  attr(cur.assignment, 'deadline') <- 100
   attr(cur.assignment, 'runtime95pct') <- 0
   attr(cur.assignment, 'runtime99pct') <- 0
 
@@ -342,10 +350,12 @@ test_that("compare.assignments returns a valid value", {
   accepted <- compare.assignments(cur.assignment, proposed.assignment, r, rs, deadline, max.temp, max.iter, cur.iter)
   expect_is(accepted, 'list')
   expect_is(attr(accepted, 'score'), 'numeric')
+  expect_is(attr(accepted, 'deadline'), 'numeric')
   expect_is(attr(accepted, 'runtime95pct'), 'numeric')
   expect_is(attr(accepted, 'runtime99pct'), 'numeric')
 
   expect_true(attr(accepted, 'score') >= 0 && attr(accepted, 'score') <= 1)
+  expect_true(attr(accepted, 'deadline') > 0)
   expect_true(attr(accepted, 'runtime95pct') > 0)
   expect_true(attr(accepted, 'runtime99pct') > 0)
 

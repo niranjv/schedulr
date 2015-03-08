@@ -23,6 +23,10 @@ List containing a mapping of tasks to instances in cluster. The list index repre
 Get initial assignment of jobs to instances in a cluster
 }
 \examples{
-init <- get.initial.assignment(10, seq(1:30))
+assignment <- get.initial.assignment(3, 1:30)
+rs <- matrix(nrow=2, ncol=3)
+rs[1,1] <- 10; rs[1,2] <- 23.5; rs[1,3] <- 2.5
+rs[2,1] <- 20; rs[2,2] <- 33.5; rs[2,3] <- 3.5
+assignment <- get.initial.assignment(3, c(rep(10, 3), rep(20, 3)), rs, method='leptf')
 }
 

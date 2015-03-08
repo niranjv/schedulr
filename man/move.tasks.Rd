@@ -4,7 +4,7 @@
 \alias{move.tasks}
 \title{Generate neighbor by moving 1 task}
 \usage{
-move.tasks(assignment, num.tasks, exchange = F)
+move.tasks(assignment, num.tasks, exchange = FALSE)
 }
 \arguments{
 \item{assignment}{A list representing the assignment for which a neighbor is desired}
@@ -20,7 +20,8 @@ A list representing the neighboring assignment
 Randomly select 2 instances in the cluster. Randomly select a task from one of the instances and move it to the other instance. Simple random sampling without replacement is used in both sampling stages.
 }
 \examples{
-assignment <- get.initial.assignment(10, seq(1:30))
+assignment <- get.initial.assignment(3, 1:30)
 neighbor <- move.tasks(assignment, 1)
+neighbor <- move.tasks(assignment, 1, exchange=TRUE)
 }
 

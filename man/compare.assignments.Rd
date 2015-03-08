@@ -30,4 +30,12 @@ A list containing the accepted assignment and score
 \description{
 Scores are calculated for both assignments. If the score of the proposed assignment is lower than the score for the current assignment, the proposed assignment and score are returned. If the score of the proposed assignment is greater than or equal to the current assignment, the a function of the current temperature and the 2 scores is used to determine which assignment to return.
 }
+\examples{
+r <- matrix(c(1,48), nrow=1, ncol=2)
+rs <- matrix(c(1,48,2555), nrow=1, ncol=3)
+c.a <- get.initial.assignment(2, c(1,1,1,1))
+c.a <- get.score(c.a, r, rs, 120)
+p.a <- get.neighbor(c.a)
+a <- compare.assignments(c.a, p.a, r, rs, 120, 25, 100, 7)
+}
 

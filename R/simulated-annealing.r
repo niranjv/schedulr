@@ -4,8 +4,8 @@
 
 data.env <- new.env()
 
-# If job contains more than bootstrap.threshold tasks, use Normal approx.
-# instead of generating bootstrap samples
+# If an instance has more than bootstrap.threshold tasks, use Normal approx.
+# to get runtime dist., instead of generating bootstrap samples
 bootstrap.threshold <- 50
 num.bootstrap.reps <- 1000
 
@@ -15,65 +15,90 @@ num.bootstrap.reps <- 1000
 # Internal functions for validating input
 # -----
 
-#' Validate that the input value is a positive integer
+
+#' Validate that the input value is a positive integer (test single number, not array)
 #'
 #' @param val The value to validate
 #' @examples
+#' check.if.positive.integer()
+#' check.if.positive.integer(c())
+#' check.if.positive.integer('')
 #' check.if.positive.integer(5)
-#' check.if.positive.integer(3.14)
+#' check.if.positive.integer(0)
 #' check.if.positive.integer(-10)
+#' check.if.positive.integer(3.14)
 #' check.if.positive.integer(1:2)
 #' check.if.positive.integer('a')
 .check.if.positive.integer <- function(value) {
 
-  if (missing(value)) { stop("Missing required argument: Must specify a value") }
-  if (length(value) != 1) { stop("Invalid argument length: Must specify a single number") }
-  if (!is.numeric(value) || value != floor(value)) { stop('Non-integer argument: value') }
-  if (value <= 0) { stop("Invalid argument: Value must be > 0") }
+  .check.if.nonnegative.integer(value)
+  value > 0 || stop("Invalid argument: Value must be > 0")
 
 } # end function - .check.if.positive.integer
 
 
+#' Validate that the input value is a non-negative integer (test single number, not array)
+#'
+#' @param val The value to validate
+#' @examples
+#' check.if.nonnegative.integer()
+#' check.if.nonnegative.integer(c())
+#' check.if.nonnegative.integer('')
+#' check.if.nonnegative.integer(5)
+#' check.if.nonnegative.integer(0)
+#' check.if.nonnegative.integer(-10)
+#' check.if.nonnegative.integer(3.14)
+#' check.if.nonnegative.integer(1:2)
+#' check.if.nonnegative.integer('a')
 .check.if.nonnegative.integer <- function(value) {
 
-  if (missing(value)) { stop("Missing required argument: Must specify a value") }
-  if (length(value) != 1) { stop("Invalid argument length: Must specify a single number") }
-  if (!is.numeric(value) || value != floor(value)) { stop('Non-integer argument: value') }
-  if (value < 0) { stop("Invalid argument: Value must be >= 0") }
+  !missing(value) || stop("Missing required argument: Must specify a value")
+  length(value) == 1 || stop("Invalid argument length: Must specify a single number")
+  (is.numeric(value) && value == floor(value)) || stop('Non-integer argument: value')
+  value >= 0 || stop("Invalid argument: Value must be >= 0")
 
-} # end function - .check.if.positive.integer
+} # end function - .check.if.nonnegative.integer
 
 
-#' Verify that input values are valid
+#' Verify that the input value is a positive real (test arrays)
 #'
 #' @param value Array of values to validate
 #' @examples
-#' '(c(1.2,3.4))
+#' .check.if.positive.real()
+#' .check.if.positive.real(c())
+#' .check.if.positive.real('')
+#' .check.if.positive.real(0)
+#' .check.if.positive.real(1)
 #' .check.if.positive.real(3.14)
+#' .check.if.positive.real(-5)
+#' .check.if.positive.real(c(1.2, 3.4))
 #' .check.if.positive.real('a')
 .check.if.positive.real <- function(value) {
 
-  if (missing(value)) { stop('Missing required argument: Must specify a value') }
-  if (length(value) == 0) { stop('Invalid argument length: Must specify a value') }
-  if (!is.numeric(value)) { stop('Non-numeric argument: Must specify a valid +ve real number') }
-  if (any(value <= 0)) { stop('Invalid argument: Value must be > 0') }
+  .check.if.nonnegative.real(value)
+  all(value > 0) || stop('Invalid argument: Value must be > 0')
 
 } # end function - .check.if.positive.real
 
 
-#' Verify that input values are valid
+#' Verify that the input value is a non-negative real (test arrays)
 #'
 #' @param value Array of values to validate
 #' @examples
+#' .check.if.nonnegative.real()
+#' .check.if.nonnegative.real(c())
+#' .check.if.nonnegative.real('')
+#' .check.if.nonnegative.real(0)
+#' .check.if.nonnegative.real(1)
 #' .check.if.nonnegative.real(c(1.2, 3.4))
 #' .check.if.nonnegative.real(3.14)
 #' .check.if.nonnegative.real('a')
 .check.if.nonnegative.real <- function(value) {
 
-  if (missing(value)) { stop('Missing required argument: Must specify a value') }
-  if (length(value) == 0) { stop('Invalid argument length: Must specify a value') }
-  if (!is.numeric(value)) { stop('Non-numeric argument: Must specify a valid +ve real number') }
-  if (any(value < 0)) { stop('Invalid argument: Value must be >= 0') }
+  !missing(value) || stop('Missing required argument: Must specify a value')
+  length(value) > 0 || stop('Invalid argument length: Must specify a value')
+  is.numeric(value) || stop('Non-numeric argument: Must specify a valid +ve real number')
+  all(value >= 0) || stop('Invalid argument: Value must be >= 0')
 
 } # end function - .check.if.nonnegative.real
 
@@ -101,16 +126,24 @@ num.bootstrap.reps <- 1000
 #'
 #' @param assignment Array of task sizes
 #' @examples
-#' a <- get.initial.assignment(2, 3)
+#' a <- get.initial.assignment(2, c(10))
+#' .validate.assignment.attributes(a)
 #' attr(a, 'score') <- 0
 #' attr(a, 'runtime95pct') <- 0
 #' attr(a, 'runtime99pct') <- 0
 #' .validate.assignment.attributes(a)
-#' .validate.assignment.attributes(b<-NULL)
 .validate.assignment.attributes <- function(assignment) {
 
+  is.numeric(attr(assignment, 'score')) || stop("Invalid argument: assignment score must be a valid number")
   attr(assignment, 'score') >= 0 || stop("Invalid argument: assignment score must be >= 0")
+
+  is.numeric(attr(assignment, 'deadline')) || stop("Invalid argument: assignment deadline must be a valid number")
+  attr(assignment, 'deadline') > 0 || stop("Invalid argument: deadline must be > 0")
+
+  is.numeric(attr(assignment, 'runtime95pct')) || stop("Invalid argument: assignment runtime95pct must be a valid number")
   attr(assignment, 'runtime95pct') >= 0 || stop("Invalid argument: assignment runtime95pct must be >= 0")
+
+  is.numeric(attr(assignment, 'runtime99pct')) || stop("Invalid argument: assignment runtime99pct must be a valid number")
   attr(assignment, 'runtime99pct') >= 0 || stop("Invalid argument: assignment runtime99pct must be >= 0")
 
 } # end function - .validate.assignment
@@ -122,7 +155,7 @@ num.bootstrap.reps <- 1000
 #' @param assignment List mapping tasks to instances
 #' @param min.num.tasks Minimum number of tasks in assignment
 #' @examples
-#' a <- get.initial.assignment(2, 4)
+#' a <- get.initial.assignment(2, c(10))
 #' .validate.num.tasks.in.assignment(a, 2)
 #' .validate.num.tasks.in.assignment(a, 5)
 .validate.num.tasks.in.assignment <- function(assignment, num.tasks.required) {
@@ -145,13 +178,13 @@ num.bootstrap.reps <- 1000
 #' .validate.runtimes.summary(r)
 .validate.runtimes <- function(runtimes) {
 
-  !missing(runtimes) || stop("Missing required argument: Must specify runtimes")
-  is.matrix(runtimes) || stop("Invalid argument type: runtimes must be a numeric matrix with 2 columns")
-  NCOL(runtimes) == 2 || stop("Invalid argument dimensions: runtimes must be a numeric matrix with 2 columns")
-  NROW(runtimes) > 0 || stop("Invalid argument dimensions: runtimes must be a numeric matrix with at least 1 row")
-  is.numeric(runtimes) || stop ("Invalid argument: runtimes must be a numeric matrix")
-  sum(runtimes[,1] < 0) == 0 || stop("Invalid argument: 1st column (size) cannot have negative values")
-  sum(runtimes[,2] < 0) == 0 || stop("Invalid argument: 2nd column (runtimes) cannot have negative values")
+  !missing(runtimes) || stop("Missing required argument: Must specify a numeric matrix with 2 columns")
+  is.matrix(runtimes) || stop("Invalid argument type: Must specify a numeric matrix with 2 columns")
+  NCOL(runtimes) == 2 || stop("Invalid argument dimensions: Must specify a numeric matrix with 2 columns")
+  NROW(runtimes) > 0 || stop("Invalid argument dimensions: Must specify a numeric matrix with 2 columns and at least 1 row")
+  is.numeric(runtimes) || stop ("Invalid argument: Must specify a numeric matrix with 2 columns")
+  all(runtimes[,1] > 0) || stop("Invalid argument: 1st column (size) must have positive values")
+  all(runtimes[,2] >= 0) || stop("Invalid argument: 2nd column (runtime) must have positive values")
 
 } # end function - .validate.runtimes
 
@@ -165,14 +198,14 @@ num.bootstrap.reps <- 1000
 #' .validate.runtimes.summary(rs)
 .validate.runtimes.summary <- function(runtimes.summary) {
 
-  !missing(runtimes.summary) || stop("Missing required argument: Must specify runtimes.summary")
-  is.matrix(runtimes.summary) || stop("Invalid argument type: runtimes.summary must be a numeric matrix with 3 columns")
-  NCOL(runtimes.summary) == 3 || stop("Invalid argument dimensions: runtimes.summary must be a numeric matrix with 3 columns")
-  NROW(runtimes.summary) > 0 || stop("Invalid argument dimensions: runtimes.summary must be a numeric matrix with at least 1 row")
-  is.numeric(runtimes.summary) || stop ("Invalid argument: runtimes.summary must be a numeric matrix")
-  sum(runtimes.summary[,1] < 0) == 0 || stop("Invalid argument: 1st column (size) cannot have negative values")
-  sum(runtimes.summary[,2] < 0) == 0 || stop("Invalid argument: 2nd column (mean(runtimes)) cannot have negative values")
-  sum(runtimes.summary[,3] < 0) == 0 || stop("Invalid argument: 3rd column (var(runtimes)) cannot have negative values")
+  !missing(runtimes.summary) || stop("Missing required argument: Must specify a numeric matrix with 2 columns")
+  is.matrix(runtimes.summary) || stop("Invalid argument type: Must specify a numeric matrix with 2 columns")
+  NCOL(runtimes.summary) == 3 || stop("Invalid argument dimensions: Must specify a numeric matrix with 3 columns")
+  NROW(runtimes.summary) > 0 || stop("Invalid argument dimensions: Must specify a numeric matrix with 2 columns and at least 1 row")
+  is.numeric(runtimes.summary) || stop ("Invalid argument: Must specify a numeric matrix with 2 columns")
+  all(runtimes.summary[,1] > 0) || stop("Invalid argument: 1st column (size) must have positive values")
+  all(runtimes.summary[,2] > 0) || stop("Invalid argument: 2nd column (runtime) must have positive values")
+  all(runtimes.summary[,3] >= 0) || stop("Invalid argument: 3rd column (var(runtimes)) cannot have negative values")
 
 } # end function - .validate.runtimes.summary
 
@@ -211,7 +244,7 @@ num.bootstrap.reps <- 1000
     varname <- paste(instance.type, '.runtimes', sep='')
   } # end if - get summary?
 
-  if(!exists(varname, envir=data.env)) { stop("Runtimes for ", instance.type, " not setup correctly") }
+  exists(varname, envir=data.env) || stop("Runtimes for ", instance.type, " not setup correctly")
   var <- get(varname, envir=data.env) # get var from internal env (data.env)
   return (var)
 
@@ -226,7 +259,7 @@ num.bootstrap.reps <- 1000
 #' @inheritParams get.initial.assignment
 #' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
 #' @examples
-#' init <- get.initial.assignment.random(10, seq(1:30))
+#' assignment <- get.initial.assignment.random(4, 1:30)
 .get.initial.assignment.random <- function(cluster.size, task.sizes) {
 
 	assignment <- vector('list', cluster.size)
@@ -255,7 +288,10 @@ num.bootstrap.reps <- 1000
 #' @inheritParams get.initial.assignment
 #' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
 #' @examples
-#' init <- get.initial.assignment.leptf(10, seq(1:30))
+#' rs <- matrix(nrow=2, ncol=3)
+#' rs[1,1] <- 10; rs[1,2] <- 23.5; rs[1,3] <- 2.5
+#' rs[2,1] <- 20; rs[2,2] <- 33.5; rs[2,3] <- 3.5
+#' assignment <- get.initial.assignment.leptf(2, rep(c(1,2), 3), rs)
 .get.initial.assignment.leptf <- function(cluster.size, task.sizes, runtimes.summary) {
 
 	assignment <- vector('list', cluster.size)
@@ -341,15 +377,13 @@ num.bootstrap.reps <- 1000
   runtimes.cur.size <- subset(runtimes, runtimes[,1] == input.size)
 	num.rows <- NROW(runtimes.cur.size)
 
-  if (num.rows == 0) { stop('Cannot find any samples for size=', input.size, ' in training set. Ensure that training set has samples for this task size') }
+  num.rows > 0 || stop('Cannot find any samples for size=', input.size, ' in training set. Ensure that training set has samples for this task size')
 
 	idx <- sample(1:num.rows, num.samples, replace=T)
 	s <- runtimes.cur.size[idx,]
 
 	# transpose data frames due to the way they are 'flattened' in unlist
-	if(NROW(s)>1) {
-		s <- t(s)
-	}
+	if (NROW(s) > 1) s <- t(s)
 
 	return (s)
 } # end function - .bootstrap.get.task.sample
@@ -376,9 +410,11 @@ num.bootstrap.reps <- 1000
 
 
 .bootstrap.get.job.runtime <- function(size.reps.table, runtimes) {
+
 	samples.matrix <- .bootstrap.get.job.sample(size.reps.table, runtimes)
 	s <- sum(samples.matrix[,2])
 	return (s)
+
 } # end function - .bootstrap.get.job.runtime
 
 
@@ -393,7 +429,6 @@ num.bootstrap.reps <- 1000
 	return (job.runtime.dist)
 
 } # end function - .bootstrap.get.job.runtime.dist
-
 
 
 
@@ -444,7 +479,11 @@ setup.trainingset.runtimes <- function(instance.type, runtimes) {
 #' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
 #' @export
 #' @examples
-#' init <- get.initial.assignment(10, seq(1:30))
+#' assignment <- get.initial.assignment(3, 1:30)
+#' rs <- matrix(nrow=2, ncol=3)
+#' rs[1,1] <- 10; rs[1,2] <- 23.5; rs[1,3] <- 2.5
+#' rs[2,1] <- 20; rs[2,2] <- 33.5; rs[2,3] <- 3.5
+#' assignment <- get.initial.assignment(3, c(rep(10, 3), rep(20, 3)), rs, method='leptf')
 get.initial.assignment <- function(cluster.size, task.sizes, runtimes.summary, method='random') {
 
   # Validate args
@@ -484,8 +523,8 @@ get.initial.assignment <- function(cluster.size, task.sizes, runtimes.summary, m
 #' @return A list representing the modified assignment of tasks to instances in the cluster
 #' @export
 #' @examples
-#' assignment <- get.initial.assignment(10, 1:30)
-#' candidate.assignment <- get.neighbor(assignment)
+#' assignment <- get.initial.assignment(3, 1:30)
+#' proposed.assignment <- get.neighbor(assignment)
 get.neighbor <- function(assignment) {
 
   ex <- sample(c(TRUE, FALSE), 1)
@@ -508,9 +547,10 @@ get.neighbor <- function(assignment) {
 #' @return A list representing the neighboring assignment
 #' @export
 #' @examples
-#' assignment <- get.initial.assignment(10, seq(1:30))
+#' assignment <- get.initial.assignment(3, 1:30)
 #' neighbor <- move.tasks(assignment, 1)
-move.tasks <- function(assignment, num.tasks, exchange=F) {
+#' neighbor <- move.tasks(assignment, 1, exchange=TRUE)
+move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
 
   # Validate args
   .validate.assignment(assignment)
@@ -614,6 +654,10 @@ move.tasks <- function(assignment, num.tasks, exchange=F) {
 
   } # end if - move only?
 
+  attr(assignment, 'score') <- NULL
+  attr(assignment, 'runtime95pct') <- NULL
+  attr(assignment, 'runtime99pct') <- NULL
+
   return (assignment)
 
 } # end sub - move.tasks
@@ -634,8 +678,13 @@ move.tasks <- function(assignment, num.tasks, exchange=F) {
 #' @param cur.iter Value of current iteration (integer)
 #' @return A list containing the accepted assignment and score
 #' @export
-# @examples
-# accepted <- compare.assignments(cur.assignment, proposed.assignment, runtimes, 3600, 25, 100, 7)
+#' @examples
+#' r <- matrix(c(1,48), nrow=1, ncol=2)
+#' rs <- matrix(c(1,48,2555), nrow=1, ncol=3)
+#' c.a <- get.initial.assignment(2, c(1,1,1,1))
+#' c.a <- get.score(c.a, r, rs, 120)
+#' p.a <- get.neighbor(c.a)
+#' a <- compare.assignments(c.a, p.a, r, rs, 120, 25, 100, 7)
 compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, runtimes.summary, deadline, max.temp, max.iter, cur.iter) {
 
   # Validate args
@@ -772,6 +821,7 @@ get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
   min.idx <- which.min(scores[,1])
 
   attr(assignment, 'score') <- scores[min.idx, 1]
+  attr(assignment, 'deadline') <- deadline
   attr(assignment, 'runtime95pct') <- scores[min.idx, 2]
   attr(assignment, 'runtime99pct') <- scores[min.idx, 3]
 
@@ -784,8 +834,7 @@ get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
 #' Get temperature for current iteration
 #'
 #' @param max.temp Max value of temperature to use (float)
-#' @param max.iter Max number of iterations to search for optimal solution
-#'   (integer)
+#' @param max.iter Max number of iterations to search for optimal solution (integer)
 #' @param cur.iter Value of current iteration (integer)
 #' @param method Method used to decrease temperature. Currently only linear decrease of temperature with each iteration is supported
 #' @return Value of temperture for the current iteration (integer)
@@ -800,7 +849,6 @@ get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
   .check.if.positive.integer(max.iter)
   .check.if.nonnegative.integer(cur.iter)
   if (cur.iter >= max.iter) { stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
-  if (method != 'linear') { stop('Invalid argument: Only method=linear is currently supported') }
 
   if (method=='linear') {
     temp <- .get.temperature.linear.decrease(max.temp, max.iter, cur.iter)
