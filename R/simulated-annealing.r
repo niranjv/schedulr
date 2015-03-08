@@ -930,6 +930,10 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
     # update best score, if necessary
     if (attr(accepted.assignment, 'score') > attr(best.assignment, 'score')) best.assignment <- accepted.assignment
 
+    # restart from current best assignment if score of current assignment is too low
+    if (attr(accepted.assignment, 'score') < 0.9 * attr(best.assignment, 'score')) cur.assignment <- best.assignment 
+
+
     if (debug) {
       scores.timeseries[(i+2),1] <- attr(accepted.assignment, 'score')
       scores.timeseries[(i+2),2] <- attr(accepted.assignment, 'runtime95pct')
