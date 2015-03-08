@@ -4,7 +4,8 @@
 \alias{get.initial.assignment}
 \title{Get initial assignment of jobs to instances in a cluster}
 \usage{
-get.initial.assignment(cluster.size, task.sizes, method = "random")
+get.initial.assignment(cluster.size, task.sizes, runtimes.summary,
+  method = "random")
 }
 \arguments{
 \item{cluster.size}{Number of instances in the cluster (+ve integer)}
