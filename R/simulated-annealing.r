@@ -256,20 +256,27 @@ num.bootstrap.reps <- 1000
 #' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
 #' @examples
 #' init <- get.initial.assignment.leptf(10, seq(1:30))
-.get.initial.assignment.leptf <- function(cluster.size, task.sizes) {
+.get.initial.assignment.leptf <- function(cluster.size, task.sizes, runtimes.summary) {
 
 	assignment <- vector('list', cluster.size)
-	sorted.task.sizes <- sort(task.sizes, decreasing=TRUE)
-  num.tasks <- length(sorted.task.sizes)
+  assignment.runtimes <- vector('list', cluster.size) # to keep track of total runtimes in each instance
+  num.tasks <- length(task.sizes)
+
+  means <- sapply(task.sizes, function(x) { idx <- which(runtimes.summary[,1] == x); return(runtimes.summary[idx,2]) } )
+  size.means <- cbind(task.sizes, means)
+  size.means <- size.means[order(size.means[,2], decreasing=TRUE), ]
+  if (class(size.means) == 'numeric') size.means <- as.matrix(t(size.means))
+  colnames(size.means) <- NULL
 
 	for (i in 1:num.tasks) {
 
-		total.size.per.instance <- lapply(assignment, sum)
-		instance.with.smallest.total <- which.min(total.size.per.instance)
+		total.runtimes.per.instance <- lapply(assignment.runtimes, sum)
+		instance.with.smallest.total.runtime <- which.min(total.runtimes.per.instance)
 		# if multiple elements in list have the lowest value, which.min returns the first
 		# for our purposes, it doesn't matter which of the instances with the lowest total is used next
 
-		assignment[[instance.with.smallest.total]] <- c(assignment[[instance.with.smallest.total]], task.sizes[i])
+		assignment[[instance.with.smallest.total.runtime]] <- c(assignment[[instance.with.smallest.total.runtime]], size.means[i,1])
+    assignment.runtimes[[instance.with.smallest.total.runtime]] <- c(assignment.runtimes[[instance.with.smallest.total.runtime]], size.means[i,2])
 
 	} # end for - loop over all tasks in order
 
@@ -437,7 +444,7 @@ setup.trainingset.runtimes <- function(instance.type, runtimes) {
 #' @export
 #' @examples
 #' init <- get.initial.assignment(10, seq(1:30))
-get.initial.assignment <- function(cluster.size, task.sizes, method='random') {
+get.initial.assignment <- function(cluster.size, task.sizes, runtimes.summary, method='random') {
 
   # Validate args
   .check.if.positive.integer(cluster.size)
@@ -446,7 +453,8 @@ get.initial.assignment <- function(cluster.size, task.sizes, method='random') {
   if (method=='random') {
     assignment <- .get.initial.assignment.random(cluster.size, task.sizes)
   } else if (method=='leptf') {
-    assignment <- .get.initial.assignment.leptf(cluster.size, task.sizes)
+    .validate.runtimes.summary(runtimes.summary)
+    assignment <- .get.initial.assignment.leptf(cluster.size, task.sizes, runtimes.summary)
   } else {
     stop('Invalid argument: ', method, ' is not a valid value for method')
   } # end if - method=random?
