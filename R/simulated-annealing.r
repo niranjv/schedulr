@@ -927,11 +927,18 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
 		accepted.assignment <- compare.assignments(cur.assignment, proposed.assignment, runtimes, runtimes.summary, deadline, max.temp, max.iter, i)
 		cur.assignment <- accepted.assignment
 
+    best.score <- attr(best.assignment, 'score')
+    accepted.score <- attr(accepted.assignment, 'score')
     # update best score, if necessary
-    if (attr(accepted.assignment, 'score') > attr(best.assignment, 'score')) best.assignment <- accepted.assignment
+    if (accepted.score > best.score) best.assignment <- accepted.assignment
 
     # restart from current best assignment if score of current assignment is too low
-    if (attr(accepted.assignment, 'score') < 0.9 * attr(best.assignment, 'score')) cur.assignment <- best.assignment 
+    d <- (best.score - accepted.score)
+    d.pct <- d/best.score
+    if (d.pct > 0.10) {
+      cur.assignment <- best.assignment
+      if (debug) cat('Resetting current assignment to best assignment since d.pct=', d.pct, '. Best score so far = ', best.score, '\n')
+    } # end if - reset current assignment to best assignment
 
 
     if (debug) {
