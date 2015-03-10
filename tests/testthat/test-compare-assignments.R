@@ -319,6 +319,9 @@ test_that("compare.assignments validates cur.iter correctly", {
 
 test_that("compare.assignments returns a valid value", {
 
+  data('m3xlarge.runtimes.expdist')
+  setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
+
   cur.assignment <- get.initial.assignment(1, c(10, 20))
   attr(cur.assignment, 'score') <- 0
   attr(cur.assignment, 'deadline') <- 100

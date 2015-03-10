@@ -175,6 +175,8 @@ test_that("get.score validates deadline correctly", {
 
 test_that("get.score returns a valid value", {
 
+  data('m3xlarge.runtimes.expdist')
+  setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
   assignment <- get.initial.assignment(1, c(1))
 
   r <- matrix(nrow=1, ncol=2)
