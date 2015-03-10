@@ -5,7 +5,7 @@
 \title{Find optimal schedule}
 \usage{
 schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp,
-  debug = FALSE)
+  reset.score.pct = NULL, reset.num.iters = NULL, debug = FALSE)
 }
 \arguments{
 \item{job}{Array of integers representing sizes of tasks in job}
@@ -19,6 +19,10 @@ schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp,
 \item{max.iter}{Max number of iterations to use to find the optimal assignment (integer)}
 
 \item{max.temp}{Max temperature to use in the simulated annealing process (flaot)}
+
+\item{reset.score.pct}{Begin next iteration from the best assignment if the difference between the best score and best score is more than this value}
+
+\item{reset.num.iters}{Begin next iteration from the best assignment if the number of iterations the score has not been increasing exceeds this value}
 
 \item{debug}{Print debug info}
 }
