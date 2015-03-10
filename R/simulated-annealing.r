@@ -535,8 +535,15 @@ get.initial.assignment <- function(cluster.size, task.sizes, runtimes.summary, m
 get.neighbor <- function(assignment) {
 
   ex <- sample(c(TRUE, FALSE), 1)
-  cat('ex=', ex, '\n', sep='')
-  neighbor <- move.tasks(assignment, 1, exchange=ex)
+
+  num.tasks.in.instances <- sapply(assignment, length)
+  num.tasks.in.instances <- round(num.tasks.in.instances/3)
+  num.tasks <- sample(max(num.tasks.in.instances), 1)
+
+  if (ex) { cat('Exchange', num.tasks, 'tasks \n\n') }
+  else { cat('Move', num.tasks, 'tasks \n\n') }
+
+  neighbor <- move.tasks(assignment, num.tasks, exchange=ex)
 
   return (neighbor)
 
@@ -576,6 +583,7 @@ move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
 
     if (! valid) {
       # If not, check if we have enough tasks to move
+      cat('WARN: Cannot exchange', num.tasks, ' tasks between 2 instances. Moving', num.tasks, 'tasks instead. \n')
       exchange <- FALSE
       valid <- .validate.num.tasks.in.assignment(assignment, num.tasks)
       if (! valid) {
@@ -610,6 +618,7 @@ move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
   if (  (exchange && (length(all.admissable.instances) < 2)) ||
         (length(all.admissable.instances) < 1) ) {
     # Insuffucient # admissable instances, so try moving 1 task between instances
+    cat('WARN: Insufficient # instances to move/exchange tasks. Moving 1 task instead. \n')
     exchange <- F
     num.instances.to.use <- .get.num.instances(exchange) # use 1 instance
     num.tasks <- 1
@@ -719,11 +728,11 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, r
 
 	proposed.assignment <- get.score(proposed.assignment, runtimes, runtimes.summary, deadline)
 
-  cat('cur.assignment: \n')
+  cat('CURRENT.assignment: \n')
   print(cur.assignment)
   cat('\n')
 
-  cat('proposed.assignment \n')
+  cat('PROPOSED.assignment \n')
   print(proposed.assignment)
   cat('\n')
 
