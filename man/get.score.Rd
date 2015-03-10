@@ -21,10 +21,4 @@ The input assignment with a value for the score attribute. Score is the probabil
 \description{
 Get score for input assignment
 }
-\examples{
-assignment <- get.initial.assignment(2, c(1,1,1,1))
-runtimes <- matrix(c(1,48), nrow=1, ncol=2)
-runtimes.summary <- matrix(c(1,48,2555), nrow=1, ncol=3)
-assignment <- get.score(assignment, runtimes, runtimes.summary, 600)
-}
 
