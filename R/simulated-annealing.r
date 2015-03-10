@@ -295,7 +295,7 @@ num.bootstrap.reps <- 1000
 .get.initial.assignment.leptf <- function(cluster.size, task.sizes, runtimes.summary) {
 
 	assignment <- vector('list', cluster.size)
-  assignment.runtimes <- vector('list', cluster.size) # to keep track of total runtimes in each instance
+  total.runtimes <- array(0, dim=cluster.size) # to keep track of total runtimes in each instance
   num.tasks <- length(task.sizes)
 
   means <- sapply(task.sizes, function(x) { idx <- which(runtimes.summary[,1] == x); return(runtimes.summary[idx,2]) } )
@@ -303,16 +303,16 @@ num.bootstrap.reps <- 1000
   size.means <- size.means[order(size.means[,2], decreasing=TRUE), ]
   if (class(size.means) == 'numeric') size.means <- as.matrix(t(size.means))
   colnames(size.means) <- NULL
+  rownames(size.means) <- NULL
 
 	for (i in 1:num.tasks) {
 
-		total.runtimes.per.instance <- lapply(assignment.runtimes, sum)
-		instance.with.smallest.total.runtime <- which.min(total.runtimes.per.instance)
+		instance.with.smallest.total.runtime <- which.min(total.runtimes)
 		# if multiple elements in list have the lowest value, which.min returns the first
 		# for our purposes, it doesn't matter which of the instances with the lowest total is used next
 
 		assignment[[instance.with.smallest.total.runtime]] <- c(assignment[[instance.with.smallest.total.runtime]], size.means[i,1])
-    assignment.runtimes[[instance.with.smallest.total.runtime]] <- c(assignment.runtimes[[instance.with.smallest.total.runtime]], size.means[i,2])
+    total.runtimes[instance.with.smallest.total.runtime] <- total.runtimes[instance.with.smallest.total.runtime] + size.means[i,2]
 
 	} # end for - loop over all tasks in order
 
@@ -370,11 +370,8 @@ num.bootstrap.reps <- 1000
 #' @return Matrix containing required number of samples for the given size
 .bootstrap.get.task.sample <- function(input.size, num.samples, runtimes) {
 
-	# get data.frame containing runtimes for all samples for input.size
-	# runtime.table.varname <- paste('runtimes.', input.size, sep='')
-	# runtime.table <- get(runtime.table.varname)
-
-  runtimes.cur.size <- subset(runtimes, runtimes[,1] == input.size)
+  varname <- paste('runtimes.', input.size, sep='')
+  runtimes.cur.size <- get(varname, envir=data.env)
 	num.rows <- NROW(runtimes.cur.size)
 
   num.rows > 0 || stop('Cannot find any samples for size=', input.size, ' in training set. Ensure that training set has samples for this task size')
@@ -457,6 +454,7 @@ setup.trainingset.runtimes <- function(instance.type, runtimes) {
   varname <- paste(instance.type, '.runtimes', sep='')
   assign(varname, runtimes, envir=data.env) # create new var in internal env (data.env)
 
+
   # save runtime summary
   m <- aggregate(runtimes[, 2], by=list(runtimes[, 1]), mean)
   v <- aggregate(runtimes[, 2], by=list(runtimes[, 1]), var)
@@ -465,6 +463,15 @@ setup.trainingset.runtimes <- function(instance.type, runtimes) {
 
   varname <- paste(instance.type, '.runtimes.summary', sep='')
   assign(varname, mv, envir=data.env) # create new var in internal env (data.env)
+
+
+  # save runtimes for each size in a separate var
+  uniq.sizes <- unique(runtimes[,1])
+  for (s in uniq.sizes) {
+    varname <- paste('runtimes.', s, sep='')
+    ss <- subset(runtimes, runtimes[,1]==s)
+    assign(varname, ss, envir=data.env)
+  } # end for - loop over all sizes
 
 } # end function - setup.trainingset.runtimes
 
@@ -678,13 +685,16 @@ move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
 #' @param cur.iter Value of current iteration (integer)
 #' @return A list containing the accepted assignment and score
 #' @export
-#' @examples
-#' r <- matrix(c(1,48), nrow=1, ncol=2)
-#' rs <- matrix(c(1,48,2555), nrow=1, ncol=3)
-#' c.a <- get.initial.assignment(2, c(1,1,1,1))
-#' c.a <- get.score(c.a, r, rs, 120)
-#' p.a <- get.neighbor(c.a)
-#' a <- compare.assignments(c.a, p.a, r, rs, 120, 25, 100, 7)
+# @examples
+# data('m3xlarge.runtimes.expdist')
+# setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
+# r <- get('m3xlarge.runtimes', envir=data.env)
+# rs <- get('m3xlarge.runtimes.summary', envir=data.env)
+# assign('runtimes.1', r, envir='data.env')
+# c.a <- get.initial.assignment(2, c(1,1,1,1))
+# c.a <- get.score(c.a, r, rs, 120)
+# p.a <- get.neighbor(c.a)
+# a <- compare.assignments(c.a, p.a, r, rs, 120, 25, 100, 7)
 compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, runtimes.summary, deadline, max.temp, max.iter, cur.iter) {
 
   # Validate args
@@ -753,11 +763,13 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, r
 #' @param deadline Time by which job must complete (float; same units as runtimes)
 #' @return The input assignment with a value for the score attribute. Score is the probability of the assignment completing the job by the deadline based on the training set runtimes of the tasks in the job (float).
 #' @export
-#' @examples
-#' assignment <- get.initial.assignment(2, c(1,1,1,1))
-#' runtimes <- matrix(c(1,48), nrow=1, ncol=2)
-#' runtimes.summary <- matrix(c(1,48,2555), nrow=1, ncol=3)
-#' assignment <- get.score(assignment, runtimes, runtimes.summary, 600)
+# @examples
+# data('m3xlarge.runtimes.expdist')
+# setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
+# assignment <- get.initial.assignment(2, c(1,1,1,1))
+# runtimes <- get('m3xlarge.runtimes', envir=data.env)
+# runtimes.summary <- get('m3xlarge.runtimes.summary', envir=data.env)
+# assignment <- get.score(assignment, runtimes, runtimes.summary, 60)
 get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
 
   # Validate args
@@ -872,6 +884,8 @@ get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
 #' @param cluster.size Integer representing the number of instances in the cluster
 #' @param max.iter Max number of iterations to use to find the optimal assignment (integer)
 #' @param max.temp Max temperature to use in the simulated annealing process (flaot)
+#' @param reset.score.pct Begin next iteration from the best assignment if the difference between the best score and best score is more than this value
+#' @param reset.num.iters Begin next iteration from the best assignment if the number of iterations the score has not been increasing exceeds this value
 #' @param debug Print debug info
 #' @return A list representing the optimal assignment that could be found under the given constraints
 #' @export
@@ -885,14 +899,17 @@ get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
 #' data(m3xlarge.runtimes.expdist)
 #' setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
 #' best.schedule <- schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
-schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp, debug=FALSE) {
+schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp, reset.score.pct=NULL, reset.num.iters=NULL, debug=FALSE) {
 
   start.time <- proc.time()
+
+  if (!is.null(reset.score.pct)) .check.if.positive.real(reset.score.pct)
+  if (!is.null(reset.num.iters)) .check.if.positive.integer(reset.num.iters)
 
   if (debug) {
     output.prefix <- paste(cluster.size, '-inst-', length(job), '-tasks-', max.iter, '-SAiter-', num.bootstrap.reps, '-BSreps', sep='')
     filename <- filename <- paste(output.prefix, '.output.txt', sep='')
-    sink(paste(output.prefix, '-output.txt', sep=''))
+    sink(filename)
   }
 
   runtimes <- .get.trainingset.runtimes(cluster.instance.type)
@@ -902,18 +919,38 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
 	cur.assignment <- get.score(cur.assignment, runtimes, runtimes.summary, deadline)
 
 	best.assignment <- cur.assignment
+  best.score <- attr(best.assignment, 'score')
+  if (debug) cat('best score=', best.score, '\n')
 
   if (debug) {
-    scores.timeseries <- matrix(nrow=(max.iter+1), ncol=6)
-    colnames(scores.timeseries) <- c(paste('Acpt_', deadline, 's', sep=''), 'Acpt_95%', 'Acpt_99%', paste('Best_', deadline, 's', sep=''), 'Best_95%', 'Best_99%')
+    scores.timeseries <- matrix(nrow=(max.iter)+1, ncol=7)
+    colnames(scores.timeseries) <- c('Iter', paste('Acpt_', deadline, 's', sep=''), 'Acpt_95%', 'Acpt_99%', paste('Best_', deadline, 's', sep=''), 'Best_95%', 'Best_99%')
 
-    scores.timeseries[1,1] <- attr(cur.assignment, 'score')
-    scores.timeseries[1,2] <- attr(cur.assignment, 'runtime95pct')
-    scores.timeseries[1,3] <- attr(cur.assignment, 'runtime99pct')
+    scores.timeseries[1,1] <- 1
 
-    scores.timeseries[1,4] <- attr(cur.assignment, 'score')
-    scores.timeseries[1,5] <- attr(cur.assignment, 'runtime95pct')
-    scores.timeseries[1,6] <- attr(cur.assignment, 'runtime99pct')
+    scores.timeseries[1,2] <- attr(cur.assignment, 'score')
+    scores.timeseries[1,3] <- attr(cur.assignment, 'runtime95pct')
+    scores.timeseries[1,4] <- attr(cur.assignment, 'runtime99pct')
+
+    scores.timeseries[1,5] <- attr(best.assignment, 'score')
+    scores.timeseries[1,6] <- attr(best.assignment, 'runtime95pct')
+    scores.timeseries[1,7] <- attr(best.assignment, 'runtime99pct')
+
+    filename.ts <- paste(output.prefix, '-scores-timeseries.csv', sep='')
+    conn <- file(filename.ts, open='wt')
+      writeLines('# Input Params', con=conn)
+      writeLines(paste('# job = ', paste(job, collapse=';'), sep=''), con=conn)
+      writeLines(paste('# deadline = ', deadline, sep=''), con=conn)
+      writeLines(paste('# cluster.instance.type = ', cluster.instance.type, sep=''), con=conn)
+      writeLines(paste('# cluster.size = ', cluster.size, sep=''), con=conn)
+      writeLines(paste('# max.iter = ', max.iter, sep=''), con=conn)
+      writeLines(paste('# max.temp = ', max.temp, sep=''), con=conn)
+      writeLines(paste('# reset.score.pct = ', ifelse(is.null(reset.score.pct), 'NULL', reset.score.pct), sep=''), con=conn)
+      writeLines(paste('# reset.num.iters = ', ifelse(is.null(reset.num.iters), 'NULL', reset.num.iters), sep=''), con=conn)
+      writeLines(paste('# debug = ', debug, sep=''), con=conn)
+
+      write.table(t(scores.timeseries[1,]), file=conn, sep=',', quote=FALSE, row.names=FALSE)
+      flush(conn)
   } # end if - debug?
 
 
@@ -921,38 +958,54 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
 	# so we start at max temp and end just above 0 and avoid divide-by-zero errors
 	for (i in 0:(max.iter-1)) {
 
-    if (debug) cat('\n\n==========\nSA iter: ', i, '\n', '==========\n\n', sep='')
+    if (debug) cat('\n\n==========\nSA iter: ', i, ' (', (i+2), ') \n', '==========\n\n', sep='')
 
 		proposed.assignment <- get.neighbor(cur.assignment)
-		accepted.assignment <- compare.assignments(cur.assignment, proposed.assignment, runtimes, runtimes.summary, deadline, max.temp, max.iter, i)
-		cur.assignment <- accepted.assignment
+		cur.assignment <- compare.assignments(cur.assignment, proposed.assignment, runtimes, runtimes.summary, deadline, max.temp, max.iter, i)
+    cur.score <- attr(cur.assignment, 'score')
 
-    best.score <- attr(best.assignment, 'score')
-    accepted.score <- attr(accepted.assignment, 'score')
     # update best score, if necessary
-    if (accepted.score > best.score) best.assignment <- accepted.assignment
+    if (cur.score > best.score) {
+      best.assignment <- cur.assignment
+      best.score <- attr(best.assignment, 'score')
+    } # end if - cur assignment better than best assignment so far?
+
     if (debug) cat('best score=', best.score, '\n')
 
     # restart from current best assignment if score of current assignment is too low
-    d <- (best.score - accepted.score)
-    d.pct <- d/best.score
-    if (d.pct > 0.10) {
-      cur.assignment <- best.assignment
-      if (debug) cat('Resetting current assignment to best assignment since d.pct=', d.pct, '. Best score so far = ', best.score, '\n', sep='')
-    } # end if - reset current assignment to best assignment
+    if (!is.null(reset.score.pct)) {
+      d <- (best.score - cur.score)
+      d.pct <- 100*d/best.score
+      if (d.pct > reset.score.pct) {
+        cur.assignment <- best.assignment
+        if (debug) cat('Resetting current assignment to best assignment since d.pct=', d.pct, '. Best score so far = ', best.score, '\n', sep='')
+      } # end if - reset current assignment to best assignment
+    } # end if - reset.score.pct defined?
+
 
 
     if (debug) {
-      scores.timeseries[(i+2),1] <- attr(accepted.assignment, 'score')
-      scores.timeseries[(i+2),2] <- attr(accepted.assignment, 'runtime95pct')
-      scores.timeseries[(i+2),3] <- attr(accepted.assignment, 'runtime99pct')
+      scores.timeseries[(i+2),1] <- (i+2)
 
-      scores.timeseries[(i+2),4] <- attr(best.assignment, 'score')
-      scores.timeseries[(i+2),5] <- attr(best.assignment, 'runtime95pct')
-      scores.timeseries[(i+2),6] <- attr(best.assignment, 'runtime99pct')
+      scores.timeseries[(i+2),2] <- attr(cur.assignment, 'score')
+      scores.timeseries[(i+2),3] <- attr(cur.assignment, 'runtime95pct')
+      scores.timeseries[(i+2),4] <- attr(cur.assignment, 'runtime99pct')
+
+      scores.timeseries[(i+2),5] <- attr(best.assignment, 'score')
+      scores.timeseries[(i+2),6] <- attr(best.assignment, 'runtime95pct')
+      scores.timeseries[(i+2),7] <- attr(best.assignment, 'runtime99pct')
+
+      write.table(t(scores.timeseries[(i+2),]), file=conn, sep=',', quote=FALSE, row.names=FALSE, col.names=FALSE, append=TRUE)
+      flush(conn)
     } # end if - debug?
 
 	} # end for - loop over all iterations
+
+
+  # sort task.sizes in each instance
+  for (i in 1:length(best.assignment)) {
+    best.assignment[[i]] <- sort(best.assignment[[i]], decreasing=TRUE)
+  } # end for - loop over all instance
 
 	cat('\nBest score: ', attr(best.assignment, 'score'), '\n')
 	cat('Best assignment: \n')
@@ -964,8 +1017,7 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
 
   if (debug)  {
     sink()
-    filename <- paste(output.prefix, '-scores-timeseries.csv', sep='')
-    write.csv(scores.timeseries, filename, quote=F, row.names=F)
+    close(conn)
   } # end if - debug?
 
   return (best.assignment)
