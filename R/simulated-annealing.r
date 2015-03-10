@@ -737,7 +737,7 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, r
   cat('\n')
 
 	if (attr(proposed.assignment, 'score') >= attr(cur.assignment, 'score')) {
-    cat('PROPOSED.score >= current.score. Returning PROPOSED \n')
+    cat('PROPOSED.score >= current.score. Returning PROPOSED \n\n')
     # new assignment has greater or equal prob. of completing job by deadline than current assignment
     result <- proposed.assignment
 
@@ -749,10 +749,10 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, r
     cat('temp=',temp, ' lhs=',lhs, ' rhs=',rhs, '\n')
 
 		if (lhs > rhs) {
-      cat('lhs > rhs; returning PROPOSED \n')
+      cat('lhs > rhs; returning PROPOSED \n\n')
       result <- proposed.assignment
 		} else {
-      cat('lhs <= rhs; returning CURRENT \n')
+      cat('lhs <= rhs; returning CURRENT \n\n')
       result <- cur.assignment
 		} # end if - lhs > rhs?
 
@@ -806,7 +806,7 @@ get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
     g <- aggregate(tasks, by=list(tasks), FUN=length)
 
     if (num.tasks > bootstrap.threshold) {
-      # use Normal approx. by CLT
+      cat('Using Normal approx. to runtime dist. \n')
       means <- apply(g, 1,
   					function(x) { runtimes.summary[which(runtimes.summary[,1] == x[1]), 2] * x[2] }
   		)
@@ -824,7 +824,7 @@ get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
       scores[i,3] <- round(qnorm(0.99, mean=job.mean, sd=job.sd), 2)
 
     } else {
-      # get dist. via bootstrap-ish sampling
+      cat('Using boostrap approx. to runtime dist. \n')
       bootstrap.dist <- .bootstrap.get.job.runtime.dist(g, num.bootstrap.reps, runtimes)
 
       # Prob. of this instance completing by deadline
@@ -948,7 +948,8 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
     filename.ts <- paste(output.prefix, '-scores-timeseries.csv', sep='')
     conn <- file(filename.ts, open='wt')
       writeLines('# Input Params', con=conn)
-      writeLines(paste('# job = ', paste(job, collapse=';'), sep=''), con=conn)
+      writeLines(paste('# job.array = ', paste(job, collapse=';'), sep=''), con=conn)
+      writeLines(paste('# num.jobs = ', length(job), sep=''), con=conn)
       writeLines(paste('# deadline = ', deadline, sep=''), con=conn)
       writeLines(paste('# cluster.instance.type = ', cluster.instance.type, sep=''), con=conn)
       writeLines(paste('# cluster.size = ', cluster.size, sep=''), con=conn)
@@ -983,6 +984,7 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
 
     # restart from current best assignment if score of current assignment is too low
     if (!is.null(reset.score.pct)) {
+      if (best.score == 0) best.score = 0.0001
       d <- (best.score - cur.score)
       d.pct <- 100*d/best.score
       if (d.pct > reset.score.pct) {
