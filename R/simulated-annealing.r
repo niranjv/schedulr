@@ -1,3 +1,4 @@
+## @knitr all
 
 # Functions for Simulated annealing
 
