@@ -17,7 +17,8 @@ num.bootstrap.reps <- 1000
 # -----
 
 
-#' Validate that the input value is a positive integer (test single number, not array)
+#' Validate that the input value is a positive integer (test single number,
+#' not array)
 #'
 #' @param val The value to validate
 #' @examples
@@ -38,7 +39,8 @@ num.bootstrap.reps <- 1000
 } # end function - .check.if.positive.integer
 
 
-#' Validate that the input value is a non-negative integer (test single number, not array)
+#' Validate that the input value is a non-negative integer (test single number,
+#' not array)
 #'
 #' @param val The value to validate
 #' @examples
@@ -54,8 +56,10 @@ num.bootstrap.reps <- 1000
 .check.if.nonnegative.integer <- function(value) {
 
   !missing(value) || stop("Missing required argument: Must specify a value")
-  length(value) == 1 || stop("Invalid argument length: Must specify a single number")
-  (is.numeric(value) && value == floor(value)) || stop('Non-integer argument: value')
+  length(value) == 1 || stop("Invalid argument length:
+    Must specify a single number")
+  (is.numeric(value) && value == floor(value)) || stop('Non-integer argument:
+    value')
   value >= 0 || stop("Invalid argument: Value must be >= 0")
 
 } # end function - .check.if.nonnegative.integer
@@ -98,7 +102,8 @@ num.bootstrap.reps <- 1000
 
   !missing(value) || stop('Missing required argument: Must specify a value')
   length(value) > 0 || stop('Invalid argument length: Must specify a value')
-  is.numeric(value) || stop('Non-numeric argument: Must specify a valid +ve real number')
+  is.numeric(value) || stop('Non-numeric argument:
+    Must specify a valid +ve real number')
   all(value >= 0) || stop('Invalid argument: Value must be >= 0')
 
 } # end function - .check.if.nonnegative.real
@@ -114,10 +119,14 @@ num.bootstrap.reps <- 1000
 .validate.assignment <- function(assignment) {
 
   !missing(assignment) || stop("Missing required argument: assignment")
-  is.list(assignment) || stop("Invalid argument type: assignment must be a list")
-  length(assignment) != 0 || stop("Invalid argument length: assignment must contain at least 1 instance")
-  is.numeric(unlist(assignment)) || stop("Non-numeric argument: tasks sizes must be valid numbers")
-  sum(unlist(assignment) <= 0) == 0 || stop("Invalid argument: tasks sizes must be > 0")
+  is.list(assignment) || stop("Invalid argument type:
+    assignment must be a list")
+  length(assignment) != 0 || stop("Invalid argument length:
+    assignment must contain at least 1 instance")
+  is.numeric(unlist(assignment)) || stop("Non-numeric argument:
+    tasks sizes must be valid numbers")
+  sum(unlist(assignment) <= 0) == 0 || stop("Invalid argument:
+    tasks sizes must be > 0")
 
 } # end function - .validate.assignment
 
@@ -135,17 +144,25 @@ num.bootstrap.reps <- 1000
 #' .validate.assignment.attributes(a)
 .validate.assignment.attributes <- function(assignment) {
 
-  is.numeric(attr(assignment, 'score')) || stop("Invalid argument: assignment score must be a valid number")
-  attr(assignment, 'score') >= 0 || stop("Invalid argument: assignment score must be >= 0")
+  is.numeric(attr(assignment, 'score')) || stop("Invalid argument:
+    assignment score must be a valid number")
+  attr(assignment, 'score') >= 0 || stop("Invalid argument:
+    assignment score must be >= 0")
 
-  is.numeric(attr(assignment, 'deadline')) || stop("Invalid argument: assignment deadline must be a valid number")
-  attr(assignment, 'deadline') > 0 || stop("Invalid argument: deadline must be > 0")
+  is.numeric(attr(assignment, 'deadline')) || stop("Invalid argument:
+    assignment deadline must be a valid number")
+  attr(assignment, 'deadline') > 0 || stop("Invalid argument:
+    deadline must be > 0")
 
-  is.numeric(attr(assignment, 'runtime95pct')) || stop("Invalid argument: assignment runtime95pct must be a valid number")
-  attr(assignment, 'runtime95pct') >= 0 || stop("Invalid argument: assignment runtime95pct must be >= 0")
+  is.numeric(attr(assignment, 'runtime95pct')) || stop("Invalid argument:
+    assignment runtime95pct must be a valid number")
+  attr(assignment, 'runtime95pct') >= 0 || stop("Invalid argument:
+    assignment runtime95pct must be >= 0")
 
-  is.numeric(attr(assignment, 'runtime99pct')) || stop("Invalid argument: assignment runtime99pct must be a valid number")
-  attr(assignment, 'runtime99pct') >= 0 || stop("Invalid argument: assignment runtime99pct must be >= 0")
+  is.numeric(attr(assignment, 'runtime99pct')) || stop("Invalid argument:
+    assignment runtime99pct must be a valid number")
+  attr(assignment, 'runtime99pct') >= 0 || stop("Invalid argument:
+    assignment runtime99pct must be >= 0")
 
 } # end function - .validate.assignment
 
@@ -179,13 +196,20 @@ num.bootstrap.reps <- 1000
 #' .validate.runtimes.summary(r)
 .validate.runtimes <- function(runtimes) {
 
-  !missing(runtimes) || stop("Missing required argument: Must specify a numeric matrix with 2 columns")
-  is.matrix(runtimes) || stop("Invalid argument type: Must specify a numeric matrix with 2 columns")
-  NCOL(runtimes) == 2 || stop("Invalid argument dimensions: Must specify a numeric matrix with 2 columns")
-  NROW(runtimes) > 0 || stop("Invalid argument dimensions: Must specify a numeric matrix with 2 columns and at least 1 row")
-  is.numeric(runtimes) || stop ("Invalid argument: Must specify a numeric matrix with 2 columns")
-  all(runtimes[,1] > 0) || stop("Invalid argument: 1st column (size) must have positive values")
-  all(runtimes[,2] >= 0) || stop("Invalid argument: 2nd column (runtime) must have positive values")
+  !missing(runtimes) || stop("Missing required argument:
+    Must specify a numeric matrix with 2 columns")
+  is.matrix(runtimes) || stop("Invalid argument type:
+    Must specify a numeric matrix with 2 columns")
+  NCOL(runtimes) == 2 || stop("Invalid argument dimensions:
+    Must specify a numeric matrix with 2 columns")
+  NROW(runtimes) > 0 || stop("Invalid argument dimensions:
+    Must specify a numeric matrix with 2 columns and at least 1 row")
+  is.numeric(runtimes) || stop ("Invalid argument:
+    Must specify a numeric matrix with 2 columns")
+  all(runtimes[,1] > 0) || stop("Invalid argument:
+    1st column (size) must have positive values")
+  all(runtimes[,2] >= 0) || stop("Invalid argument:
+    2nd column (runtime) must have positive values")
 
 } # end function - .validate.runtimes
 
@@ -199,14 +223,22 @@ num.bootstrap.reps <- 1000
 #' .validate.runtimes.summary(rs)
 .validate.runtimes.summary <- function(runtimes.summary) {
 
-  !missing(runtimes.summary) || stop("Missing required argument: Must specify a numeric matrix with 2 columns")
-  is.matrix(runtimes.summary) || stop("Invalid argument type: Must specify a numeric matrix with 2 columns")
-  NCOL(runtimes.summary) == 3 || stop("Invalid argument dimensions: Must specify a numeric matrix with 3 columns")
-  NROW(runtimes.summary) > 0 || stop("Invalid argument dimensions: Must specify a numeric matrix with 2 columns and at least 1 row")
-  is.numeric(runtimes.summary) || stop ("Invalid argument: Must specify a numeric matrix with 2 columns")
-  all(runtimes.summary[,1] > 0) || stop("Invalid argument: 1st column (size) must have positive values")
-  all(runtimes.summary[,2] > 0) || stop("Invalid argument: 2nd column (runtime) must have positive values")
-  all(runtimes.summary[,3] >= 0) || stop("Invalid argument: 3rd column (var(runtimes)) cannot have negative values")
+  !missing(runtimes.summary) || stop("Missing required argument:
+    Must specify a numeric matrix with 2 columns")
+  is.matrix(runtimes.summary) || stop("Invalid argument type:
+    Must specify a numeric matrix with 2 columns")
+  NCOL(runtimes.summary) == 3 || stop("Invalid argument dimensions:
+    Must specify a numeric matrix with 3 columns")
+  NROW(runtimes.summary) > 0 || stop("Invalid argument dimensions:
+    Must specify a numeric matrix with 2 columns and at least 1 row")
+  is.numeric(runtimes.summary) || stop ("Invalid argument:
+    Must specify a numeric matrix with 2 columns")
+  all(runtimes.summary[,1] > 0) || stop("Invalid argument:
+    1st column (size) must have positive values")
+  all(runtimes.summary[,2] > 0) || stop("Invalid argument:
+    2nd column (runtime) must have positive values")
+  all(runtimes.summary[,3] >= 0) || stop("Invalid argument:
+  3rd column (var(runtimes)) cannot have negative values")
 
 } # end function - .validate.runtimes.summary
 
@@ -214,11 +246,16 @@ num.bootstrap.reps <- 1000
 
 .validate.instance.type <- function(instance.type) {
 
-  !missing(instance.type) || stop("Missing required argument: Must specify instance.type")
-  length(instance.type) != 0 || stop("Invalid argument length: instance.type must be a string")
-  nchar(instance.type) > 0 || stop("Invalid argument length: instance.type must be a string")
-  is.character(instance.type) || stop ("Invalid argument type: instance.type must be a string")
-  NROW(instance.type) == 1 || stop ("Invalid argument length: instance.type must be a string, not a vector of strings")
+  !missing(instance.type) || stop("Missing required argument:
+    Must specify instance.type")
+  length(instance.type) != 0 || stop("Invalid argument length:
+    instance.type must be a string")
+  nchar(instance.type) > 0 || stop("Invalid argument length:
+    instance.type must be a string")
+  is.character(instance.type) || stop ("Invalid argument type:
+    instance.type must be a string")
+  NROW(instance.type) == 1 || stop ("Invalid argument length:
+    instance.type must be a string, not a vector of strings")
 
 } # end function - .validate.runtimes
 
