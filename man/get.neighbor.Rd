@@ -7,10 +7,12 @@
 get.neighbor(assignment)
 }
 \arguments{
-\item{assignment}{A list representing a mapping of tasks to instances in a cluster}
+\item{assignment}{A list representing a mapping of tasks to instances in a
+cluster}
 }
 \value{
-A list representing the modified assignment of tasks to instances in the cluster
+A list representing the modified assignment of tasks to instances in
+the cluster
 }
 \description{
 The input assignment is modified in one of several different ways, including
@@ -23,7 +25,8 @@ The input assignment is modified in one of several different ways, including
  \item Exchange 2 tasks with 2 other instances
  \item and so on...
 }
-Only the first 2 methods are currently implemented with an equal probability of selecting either method.
+Only the first 2 methods are currently implemented with an equal probability
+of selecting either method.
 }
 \examples{
 assignment <- get.initial.assignment(3, 1:30)

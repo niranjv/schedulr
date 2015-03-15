@@ -12,15 +12,22 @@ compare.assignments(cur.assignment, proposed.assignment, runtimes,
 
 \item{proposed.assignment}{Proposed assignment with no score (list)}
 
-\item{runtimes}{Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.}
+\item{runtimes}{Matrix of runtimes for the given instance type. Each row in
+the matrix represents a single training sample and has 2 columns. The size
+column is the size of task that was processed. The runtime_sec column is the
+time taken to process the task in seconds.}
 
-\item{runtimes.summary}{Numeric matrix containing mean and variance of runtimes for each size}
+\item{runtimes.summary}{Numeric matrix containing mean and variance of
+runtimes for each size}
 
-\item{deadline}{Time by which job must be complete (float). Same time units as runtimes}
+\item{deadline}{Time by which job must be complete (float). Same time units
+as runtimes}
 
-\item{max.temp}{Max temperature to use in the simulated annealing process (integer)}
+\item{max.temp}{Max temperature to use in the simulated annealing process
+'(integer)}
 
-\item{max.iter}{Max # iterations to use to find the optimal assignment via simulated annealing (integer)}
+\item{max.iter}{Max # iterations to use to find the optimal assignment via
+simulated annealing (integer)}
 
 \item{cur.iter}{Value of current iteration (integer)}
 }
@@ -28,6 +35,11 @@ compare.assignments(cur.assignment, proposed.assignment, runtimes,
 A list containing the accepted assignment and score
 }
 \description{
-Scores are calculated for both assignments. If the score of the proposed assignment is lower than the score for the current assignment, the proposed assignment and score are returned. If the score of the proposed assignment is greater than or equal to the current assignment, the a function of the current temperature and the 2 scores is used to determine which assignment to return.
+Scores are calculated for both assignments. If the score of the proposed
+assignment is lower than the score for the current assignment, the proposed
+assignment and score are returned. If the score of the proposed assignment is
+greater than or equal to the current assignment, the a function of the
+current temperature and the 2 scores is used to determine which assignment
+to return.
 }
 

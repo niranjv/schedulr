@@ -12,25 +12,33 @@ schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp,
 
 \item{deadline}{Time (in seconds) by which job must be completed (integer)}
 
-\item{cluster.instance.type}{Instance type of cluster (string). All instances in the cluster are assumed to have the same instance type}
+\item{cluster.instance.type}{Instance type of cluster (string).
+All instances in the cluster are assumed to have the same instance type}
 
-\item{cluster.size}{Integer representing the number of instances in the cluster}
+\item{cluster.size}{Integer representing the number of instances
+in the cluster}
 
-\item{max.iter}{Max number of iterations to use to find the optimal assignment (integer)}
+\item{max.iter}{Max number of iterations to use to find the optimal
+assignment (integer)}
 
-\item{max.temp}{Max temperature to use in the simulated annealing process (flaot)}
+\item{max.temp}{Max temperature to use in the simulated annealing
+process (flaot)}
 
-\item{reset.score.pct}{Begin next iteration from the best assignment if the difference between the best score and best score is more than this value}
+\item{reset.score.pct}{Begin next iteration from the best assignment if the
+difference between the best score and best score is more than this value}
 
-\item{reset.num.iters}{Begin next iteration from the best assignment if the number of iterations the score has not been increasing exceeds this value}
+\item{reset.num.iters}{Begin next iteration from the best assignment if the
+number of iterations the score has not been increasing exceeds this value}
 
 \item{debug}{Print debug info}
 }
 \value{
-A list representing the optimal assignment that could be found under the given constraints
+A list representing the optimal assignment that could be found under
+the given constraints
 }
 \description{
-Want an assignment with >= .95 probability of completing job by the deadline with the lowest makespan (cost)
+Want an assignment with >= .95 probability of completing job by the deadline
+with the lowest makespan (cost)
 }
 \examples{
 job <- c(1,60,100)
@@ -41,6 +49,7 @@ max.iter <- 2
 max.temp <- 0.5
 data(m3xlarge.runtimes.expdist)
 setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
-best.schedule <- schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
+best.schedule <- schedule(job, deadline, cluster.instance.type,
+cluster.size, max.iter, max.temp)
 }
 

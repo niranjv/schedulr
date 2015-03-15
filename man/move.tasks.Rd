@@ -7,9 +7,11 @@
 move.tasks(assignment, num.tasks, exchange = FALSE)
 }
 \arguments{
-\item{assignment}{A list representing the assignment for which a neighbor is desired}
+\item{assignment}{A list representing the assignment for which a neighbor is
+desired}
 
-\item{num.tasks}{Integer representing the number of tasks to be moved from 1 instance to another}
+\item{num.tasks}{Integer representing the number of tasks to be moved from 1
+instance to another}
 
 \item{exchange}{Exchange tasks between instances instead of moving them}
 }
@@ -17,7 +19,9 @@ move.tasks(assignment, num.tasks, exchange = FALSE)
 A list representing the neighboring assignment
 }
 \description{
-Randomly select 2 instances in the cluster. Randomly select a task from one of the instances and move it to the other instance. Simple random sampling without replacement is used in both sampling stages.
+Randomly select 2 instances in the cluster. Randomly select a task from one
+of the instances and move it to the other instance. Simple random sampling
+without replacement is used in both sampling stages.
 }
 \examples{
 assignment <- get.initial.assignment(3, 1:30)

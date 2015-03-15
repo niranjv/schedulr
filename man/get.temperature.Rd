@@ -9,11 +9,13 @@ get.temperature(max.temp, max.iter, cur.iter, method = "linear")
 \arguments{
 \item{max.temp}{Max value of temperature to use (float)}
 
-\item{max.iter}{Max number of iterations to search for optimal solution (integer)}
+\item{max.iter}{Max number of iterations to search for optimal solution
+'(integer)}
 
 \item{cur.iter}{Value of current iteration (integer)}
 
-\item{method}{Method used to decrease temperature. Currently only linear decrease of temperature with each iteration is supported}
+\item{method}{Method used to decrease temperature.
+Currently only linear decrease of temperature with iteration is supported}
 }
 \value{
 Value of temperture for the current iteration (integer)

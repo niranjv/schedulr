@@ -12,21 +12,25 @@ get.initial.assignment(cluster.size, task.sizes, runtimes.summary,
 
 \item{task.sizes}{Array of task sizes (+ve reals)}
 
-\item{runtimes.summary}{Numeric matrix containing mean and variance of runtimes for each size. Must be supplied when method='leptf'}
+\item{runtimes.summary}{Numeric matrix containing mean and variance of
+runtimes for each size. Must be supplied when method='leptf'}
 
-\item{method}{Method to use to assign tasks to instances. Must be one of ('random', 'leptf').}
+\item{method}{Method to use to assign tasks to instances.
+Must be one of ('random', 'leptf').}
 }
 \value{
-List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
+List containing a mapping of tasks to instances in cluster.
+The list index represents the id of an instance in the cluster while
+the associated list member represents the task assigned to that instance
 }
 \description{
 Get initial assignment of jobs to instances in a cluster
 }
 \examples{
-assignment <- get.initial.assignment(3, 1:30)
+a <- get.initial.assignment(3, 1:30)
 rs <- matrix(nrow=2, ncol=3)
 rs[1,1] <- 10; rs[1,2] <- 23.5; rs[1,3] <- 2.5
 rs[2,1] <- 20; rs[2,2] <- 33.5; rs[2,3] <- 3.5
-assignment <- get.initial.assignment(3, c(rep(10, 3), rep(20, 3)), rs, method='leptf')
+a <- get.initial.assignment(3, c(rep(10, 3), rep(20, 3)), rs, method='leptf')
 }
 

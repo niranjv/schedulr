@@ -7,9 +7,13 @@
 setup.trainingset.runtimes(instance.type, runtimes)
 }
 \arguments{
-\item{instance.type}{Instance type of cluster (string). All instances in the cluster are assumed to be of the same type}
+\item{instance.type}{Instance type of cluster (string).
+All instances in the cluster are assumed to be of the same type}
 
-\item{runtimes}{Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.}
+\item{runtimes}{Matrix of runtimes for the given instance type.
+Each row in the matrix represents a single training sample and has 2 columns.
+The size column is the size of task that was processed.
+The runtime_sec column is the time taken to process the task in seconds.}
 }
 \description{
 All instances in a cluster are assumed to be of the same type

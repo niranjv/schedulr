@@ -9,14 +9,21 @@ get.score(assignment, runtimes, runtimes.summary, deadline)
 \arguments{
 \item{assignment}{The assignment which needs to be scored (list)}
 
-\item{runtimes}{Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.}
+\item{runtimes}{Matrix of runtimes for the given instance type.
+Each row in the matrix represents a single training sample and has 2 columns.
+The size column is the size of task that was processed.
+The runtime_sec column is the time taken to process the task in seconds.}
 
-\item{runtimes.summary}{Numeric matrix containing mean and variance of runtimes for each size}
+\item{runtimes.summary}{Numeric matrix containing mean and variance of
+runtimes for each size}
 
-\item{deadline}{Time by which job must complete (float; same units as runtimes)}
+\item{deadline}{Time by which job must complete
+'(float; same units as runtimes)}
 }
 \value{
-The input assignment with a value for the score attribute. Score is the probability of the assignment completing the job by the deadline based on the training set runtimes of the tasks in the job (float).
+The input assignment with a value for the score attribute. Score is
+the probability of the assignment completing the job by the deadline based
+on the training set runtimes of the tasks in the job (float).
 }
 \description{
 Get score for input assignment
