@@ -190,7 +190,10 @@ num.bootstrap.reps <- 1000
 
 #' Verify that runtimes are valid values
 #'
-#' @param runtimes Matrix of runtime of past runs for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
+#' @param runtimes Matrix of runtime of past runs for the given instance type.
+#' Each row in the matrix represents a single training sample and has 2 columns.
+#' The size column is the size of task that was processed.
+#' The runtime_sec column is the time taken to process the task in seconds.
 #' @examples
 #' r <- matrix(c(1,1), nrow=1, ncol=2)
 #' .validate.runtimes.summary(r)
@@ -217,7 +220,8 @@ num.bootstrap.reps <- 1000
 
 #' Verify that runtime summaries are valid values
 #'
-#' @param runtimes.summary Numeric matrix containing mean and variance of runtimes for each size
+#' @param runtimes.summary Numeric matrix containing mean and variance of
+#' runtimes for each size
 #' @examples
 #' rs <- matrix(c(1,1,1), nrow=1, ncol=3)
 #' .validate.runtimes.summary(rs)
@@ -270,8 +274,17 @@ num.bootstrap.reps <- 1000
 #' @inheritParams setup.trainingset.runtimes
 #' @param summary Return only summary of runtimes.
 #' @return
-#' If summary=F, return value is a matrix of runtimes for the given instance type. Each row in the matrix represents a single trial and has 2 columns. The 1st column is the size of task that was processed and the 2nd column is the runtime for this size.
-#' If summary=T, return value is a matrix of summary of runtimes for the given instance type. Each row in the matrix represents a single size and has 3 columns. The 1st column is the size of task that was processed, the 2nd column is the mean runtime for this size and the 3rd column is the variance of the runtimes for this size
+#' If summary=F, return value is a matrix of runtimes for the given
+#' instance type.
+#' Each row in the matrix represents a single trial and has 2 columns.
+#' The 1st column is the size of task that was processed and
+#' the 2nd column is the runtime for this size.
+#' If summary=T, return value is a matrix of summary of runtimes for the given
+#' instance type. Each row in the matrix represents a single size and has
+#' 3 columns.
+#' The 1st column is the size of task that was processed,
+#' the 2nd column is the mean runtime for this size and
+#' the 3rd column is the variance of the runtimes for this size
 #' @examples
 #' .get.trainingset.runtimes('m3xlarge')
 .get.trainingset.runtimes <- function(instance.type, summary=F) {
@@ -282,7 +295,8 @@ num.bootstrap.reps <- 1000
     varname <- paste(instance.type, '.runtimes', sep='')
   } # end if - get summary?
 
-  exists(varname, envir=data.env) || stop("Runtimes for ", instance.type, " not setup correctly")
+  exists(varname, envir=data.env) ||
+    stop("Runtimes for ", instance.type, " not setup correctly")
   var <- get(varname, envir=data.env) # get var from internal env (data.env)
   return (var)
 
@@ -295,7 +309,9 @@ num.bootstrap.reps <- 1000
 #' Tasks are randomly assigned to instances
 #'
 #' @inheritParams get.initial.assignment
-#' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
+#' @return List containing a mapping of tasks to instances in cluster.
+#' The list index represents the id of an instance in the cluster while
+#' the associated list member represents the task assigned to that instance
 #' @examples
 #' assignment <- get.initial.assignment.random(4, 1:30)
 .get.initial.assignment.random <- function(cluster.size, task.sizes) {
@@ -321,22 +337,29 @@ num.bootstrap.reps <- 1000
 
 #' Get initial assignment of tasks to instances in a cluster
 #'
-#' Tasks are assigned to instances in decreasing order of expected processing time (i.e., Longest Expected Processing Time First rule)
+#' Tasks are assigned to instances in decreasing order of expected processing
+#' time (i.e., Longest Expected Processing Time First rule)
 #'
 #' @inheritParams get.initial.assignment
-#' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
+#' @return List containing a mapping of tasks to instances in cluster.
+#' The list index represents the id of an instance in the cluster while the
+#' associated list member represents the task assigned to that instance
 #' @examples
 #' rs <- matrix(nrow=2, ncol=3)
 #' rs[1,1] <- 10; rs[1,2] <- 23.5; rs[1,3] <- 2.5
 #' rs[2,1] <- 20; rs[2,2] <- 33.5; rs[2,3] <- 3.5
 #' assignment <- get.initial.assignment.leptf(2, rep(c(1,2), 3), rs)
-.get.initial.assignment.leptf <- function(cluster.size, task.sizes, runtimes.summary) {
+.get.initial.assignment.leptf <- function(cluster.size, task.sizes,
+  runtimes.summary) {
 
 	assignment <- vector('list', cluster.size)
-  total.runtimes <- array(0, dim=cluster.size) # to keep track of total runtimes in each instance
+  # to keep track of total runtimes in each instance
+  total.runtimes <- array(0, dim=cluster.size)
   num.tasks <- length(task.sizes)
 
-  means <- sapply(task.sizes, function(x) { idx <- which(runtimes.summary[,1] == x); return(runtimes.summary[idx,2]) } )
+  means <- sapply(task.sizes, function(x) {
+    idx <- which(runtimes.summary[,1] == x); return(runtimes.summary[idx,2])
+  })
   size.means <- cbind(task.sizes, means)
   size.means <- size.means[order(size.means[,2], decreasing=TRUE), ]
   if (class(size.means) == 'numeric') size.means <- as.matrix(t(size.means))
@@ -346,11 +369,14 @@ num.bootstrap.reps <- 1000
 	for (i in 1:num.tasks) {
 
 		instance.with.smallest.total.runtime <- which.min(total.runtimes)
-		# if multiple elements in list have the lowest value, which.min returns the first
-		# for our purposes, it doesn't matter which of the instances with the lowest total is used next
+		# if multiple elements in list have the lowest value,
+    # which.min returns the first. For our purposes, it doesn't matter which of
+    # the instances with the lowest total is used next.
 
-		assignment[[instance.with.smallest.total.runtime]] <- c(assignment[[instance.with.smallest.total.runtime]], size.means[i,1])
-    total.runtimes[instance.with.smallest.total.runtime] <- total.runtimes[instance.with.smallest.total.runtime] + size.means[i,2]
+		assignment[[instance.with.smallest.total.runtime]] <-
+    c(assignment[[instance.with.smallest.total.runtime]], size.means[i,1])
+    total.runtimes[instance.with.smallest.total.runtime] <-
+    total.runtimes[instance.with.smallest.total.runtime] + size.means[i,2]
 
 	} # end for - loop over all tasks in order
 
@@ -361,10 +387,12 @@ num.bootstrap.reps <- 1000
 
 
 #' Get list of instances that have the minimum number of tasks required
-.get.admissable.instances <- function(assignment, num.tasks.per.instance, num.instances.to.use) {
+.get.admissable.instances <- function(assignment, num.tasks.per.instance,
+                                      num.instances.to.use) {
 
   num.tasks.in.instances <- lapply(assignment, length)
-  admissable.instances <- which(num.tasks.in.instances >= num.tasks.per.instance)
+  admissable.instances <-
+    which(num.tasks.in.instances >= num.tasks.per.instance)
   return (admissable.instances)
 } # end function - get.admissable.instances
 
@@ -404,7 +432,7 @@ num.bootstrap.reps <- 1000
 #'
 #' @param input.size Task size for which samples are required (integer)
 #' @param num.samples Number of samples required  (integer)
-#' @param runtimes Matrix containing size & runtime info for training set samples
+#' @param runtimes Matrix containing size & runtime info for training set sample
 #' @return Matrix containing required number of samples for the given size
 .bootstrap.get.task.sample <- function(input.size, num.samples, runtimes) {
 
@@ -412,7 +440,8 @@ num.bootstrap.reps <- 1000
   runtimes.cur.size <- get(varname, envir=data.env)
 	num.rows <- NROW(runtimes.cur.size)
 
-  num.rows > 0 || stop('Cannot find any samples for size=', input.size, ' in training set. Ensure that training set has samples for this task size')
+  num.rows > 0 || stop('Cannot find any samples for size=', input.size,
+    ' in training set. Ensure that training set has samples for this task size')
 
 	idx <- sample(1:num.rows, num.samples, replace=T)
 	s <- runtimes.cur.size[idx,]
@@ -436,7 +465,9 @@ num.bootstrap.reps <- 1000
 	# 4     850 1
 	# 5    2100 1
 
-	samples.list <- apply(size.reps.table, 1, function(x) { .bootstrap.get.task.sample(x[1], x[2], runtimes) })
+	samples.list <- apply(size.reps.table, 1, function(x) {
+    .bootstrap.get.task.sample(x[1], x[2], runtimes)
+  })
 	samples.matrix <- matrix(unlist(samples.list), ncol=2, byrow=TRUE)
 
 	return (samples.matrix)
@@ -453,7 +484,8 @@ num.bootstrap.reps <- 1000
 } # end function - .bootstrap.get.job.runtime
 
 
-.bootstrap.get.job.runtime.dist <- function(size.reps.table, num.bootstrap.reps, runtimes) {
+.bootstrap.get.job.runtime.dist <-
+  function(size.reps.table, num.bootstrap.reps, runtimes) {
 
 	job.runtime.dist <- array(dim=num.bootstrap.reps)
 	for(i in 1:num.bootstrap.reps) {
@@ -476,8 +508,12 @@ num.bootstrap.reps <- 1000
 #'
 #' All instances in a cluster are assumed to be of the same type
 #'
-#' @param instance.type Instance type of cluster (string). All instances in the cluster are assumed to be of the same type
-#' @param runtimes Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
+#' @param instance.type Instance type of cluster (string).
+#' All instances in the cluster are assumed to be of the same type
+#' @param runtimes Matrix of runtimes for the given instance type.
+#' Each row in the matrix represents a single training sample and has 2 columns.
+#' The size column is the size of task that was processed.
+#' The runtime_sec column is the time taken to process the task in seconds.
 #' @export
 #' @examples
 #' runtimes <- cbind(rep(c(1,2), each=5), c(rpois(5,5), rpois(5,10)))
@@ -490,7 +526,8 @@ setup.trainingset.runtimes <- function(instance.type, runtimes) {
 
   # Save runtimes of individual trials to use in bootstrap sampling
   varname <- paste(instance.type, '.runtimes', sep='')
-  assign(varname, runtimes, envir=data.env) # create new var in internal env (data.env)
+  # create new var in internal env (data.env)
+  assign(varname, runtimes, envir=data.env)
 
 
   # save runtime summary
@@ -500,7 +537,8 @@ setup.trainingset.runtimes <- function(instance.type, runtimes) {
   colnames(mv) <- c('size', 'mean', 'var')
 
   varname <- paste(instance.type, '.runtimes.summary', sep='')
-  assign(varname, mv, envir=data.env) # create new var in internal env (data.env)
+  # create new var in internal env (data.env)
+  assign(varname, mv, envir=data.env)
 
 
   # save runtimes for each size in a separate var
@@ -519,17 +557,22 @@ setup.trainingset.runtimes <- function(instance.type, runtimes) {
 #'
 #' @param cluster.size Number of instances in the cluster (+ve integer)
 #' @param task.sizes Array of task sizes (+ve reals)
-#' @param runtimes.summary Numeric matrix containing mean and variance of runtimes for each size. Must be supplied when method='leptf'
-#' @param method Method to use to assign tasks to instances. Must be one of ('random', 'leptf').
-#' @return List containing a mapping of tasks to instances in cluster. The list index represents the id of an instance in the cluster while the associated list member represents the task assigned to that instance
+#' @param runtimes.summary Numeric matrix containing mean and variance of
+#' runtimes for each size. Must be supplied when method='leptf'
+#' @param method Method to use to assign tasks to instances.
+#' Must be one of ('random', 'leptf').
+#' @return List containing a mapping of tasks to instances in cluster.
+#' The list index represents the id of an instance in the cluster while
+#' the associated list member represents the task assigned to that instance
 #' @export
 #' @examples
-#' assignment <- get.initial.assignment(3, 1:30)
+#' a <- get.initial.assignment(3, 1:30)
 #' rs <- matrix(nrow=2, ncol=3)
 #' rs[1,1] <- 10; rs[1,2] <- 23.5; rs[1,3] <- 2.5
 #' rs[2,1] <- 20; rs[2,2] <- 33.5; rs[2,3] <- 3.5
-#' assignment <- get.initial.assignment(3, c(rep(10, 3), rep(20, 3)), rs, method='leptf')
-get.initial.assignment <- function(cluster.size, task.sizes, runtimes.summary, method='random') {
+#' a <- get.initial.assignment(3, c(rep(10, 3), rep(20, 3)), rs, method='leptf')
+get.initial.assignment <-
+  function(cluster.size, task.sizes, runtimes.summary, method='random') {
 
   # Validate args
   .check.if.positive.integer(cluster.size)
@@ -539,7 +582,9 @@ get.initial.assignment <- function(cluster.size, task.sizes, runtimes.summary, m
     assignment <- .get.initial.assignment.random(cluster.size, task.sizes)
   } else if (method=='leptf') {
     .validate.runtimes.summary(runtimes.summary)
-    assignment <- .get.initial.assignment.leptf(cluster.size, task.sizes, runtimes.summary)
+    assignment <- .get.initial.assignment.leptf(
+      cluster.size, task.sizes, runtimes.summary
+    )
   } else {
     stop('Invalid argument: ', method, ' is not a valid value for method')
   } # end if - method=random?
@@ -562,10 +607,13 @@ get.initial.assignment <- function(cluster.size, task.sizes, runtimes.summary, m
 #'  \item Exchange 2 tasks with 2 other instances
 #'  \item and so on...
 #' }
-#' Only the first 2 methods are currently implemented with an equal probability of selecting either method.
+#' Only the first 2 methods are currently implemented with an equal probability
+#' of selecting either method.
 #'
-#' @param assignment A list representing a mapping of tasks to instances in a cluster
-#' @return A list representing the modified assignment of tasks to instances in the cluster
+#' @param assignment A list representing a mapping of tasks to instances in a
+#' cluster
+#' @return A list representing the modified assignment of tasks to instances in
+#' the cluster
 #' @export
 #' @examples
 #' assignment <- get.initial.assignment(3, 1:30)
@@ -591,10 +639,14 @@ get.neighbor <- function(assignment) {
 
 #' Generate neighbor by moving 1 task
 #'
-#' Randomly select 2 instances in the cluster. Randomly select a task from one of the instances and move it to the other instance. Simple random sampling without replacement is used in both sampling stages.
+#' Randomly select 2 instances in the cluster. Randomly select a task from one
+#' of the instances and move it to the other instance. Simple random sampling
+#' without replacement is used in both sampling stages.
 #'
-#' @param assignment A list representing the assignment for which a neighbor is desired
-#' @param num.tasks Integer representing the number of tasks to be moved from 1 instance to another
+#' @param assignment A list representing the assignment for which a neighbor is
+#' desired
+#' @param num.tasks Integer representing the number of tasks to be moved from 1
+#' instance to another
 #' @param exchange Exchange tasks between instances instead of moving them
 #' @return A list representing the neighboring assignment
 #' @export
@@ -621,7 +673,8 @@ move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
 
     if (! valid) {
       # If not, check if we have enough tasks to move
-      cat('WARN: Cannot exchange', num.tasks, ' tasks between 2 instances. Moving', num.tasks, 'tasks instead. \n')
+      cat('WARN: Cannot exchange', num.tasks, ' tasks between 2 instances.
+        Moving', num.tasks, 'tasks instead. \n')
       exchange <- FALSE
       valid <- .validate.num.tasks.in.assignment(assignment, num.tasks)
       if (! valid) {
@@ -641,26 +694,32 @@ move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
   } # end if - exchange tasks?
 
 
-  # number of instances to use depends on whether we are moving tasks or exchanging tasks
+  # number of instances to use depends on whether we are moving tasks
+  # or exchanging tasks
   # - exchange requires 2 instances; move requires 1 instance
   num.instances.to.use <- .get.num.instances(exchange)
 
 
   # Get all instances with at least num.tasks tasks
-  all.admissable.instances <- .get.admissable.instances(assignment, num.tasks, num.instances.to.use)
+  all.admissable.instances <-
+    .get.admissable.instances(assignment, num.tasks, num.instances.to.use)
 
   # Can fail to get sufficient # admissable instances when:
   # exchange & # instances < 2
-  # !exchange and # instances < 1 (due to insufficient # tasks to move in all instances)
+  # !exchange and # instances < 1 (due to insufficient # tasks to move in all
+  # instances)
 
   if (  (exchange && (length(all.admissable.instances) < 2)) ||
         (length(all.admissable.instances) < 1) ) {
-    # Insuffucient # admissable instances, so try moving 1 task between instances
-    cat('WARN: Insufficient # instances to move/exchange tasks. Moving 1 task instead. \n')
+    # Insuffucient # admissable instances,
+    # so try moving 1 task between instances
+    cat('WARN: Insufficient # instances to move/exchange tasks.
+      Moving 1 task instead. \n')
     exchange <- F
     num.instances.to.use <- .get.num.instances(exchange) # use 1 instance
     num.tasks <- 1
-    all.admissable.instances <- .get.admissable.instances(assignment, num.tasks, num.instances.to.use)
+    all.admissable.instances <-
+      .get.admissable.instances(assignment, num.tasks, num.instances.to.use)
 
     if(length(all.admissable.instances) < 1) {
       stop("Error: Cannot find a single instance with at least 1 task!")
@@ -668,8 +727,10 @@ move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
 
   } # end if - sufficient # instances found?
 
-  idx.admissable.instances.sample <- sample(1:length(all.admissable.instances), num.instances.to.use)
-  admissable.instances.sample <- all.admissable.instances[idx.admissable.instances.sample]
+  idx.admissable.instances.sample <-
+    sample(1:length(all.admissable.instances), num.instances.to.use)
+  admissable.instances.sample <-
+    all.admissable.instances[idx.admissable.instances.sample]
 
   # Remove task(s) from donor instance(s)
   tasks.mat <- matrix(nrow=num.instances.to.use, ncol=num.tasks)
@@ -698,7 +759,8 @@ move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
 
   } else {
     # Get acceptor instance
-    idx.remaining.instances <- (1:length(assignment))[-admissable.instances.sample]
+    idx.remaining.instances <-
+      (1:length(assignment))[-admissable.instances.sample]
     num.remaining.instances <- length(idx.remaining.instances)
     if (num.remaining.instances == 1) { instance2 <- idx.remaining.instances }
     else { instance2 <- sample(c(idx.remaining.instances), 1) }
@@ -720,15 +782,27 @@ move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
 
 #' Compare 2 assignments based on their score
 #'
-#' Scores are calculated for both assignments. If the score of the proposed assignment is lower than the score for the current assignment, the proposed assignment and score are returned. If the score of the proposed assignment is greater than or equal to the current assignment, the a function of the current temperature and the 2 scores is used to determine which assignment to return.
+#' Scores are calculated for both assignments. If the score of the proposed
+#' assignment is lower than the score for the current assignment, the proposed
+#' assignment and score are returned. If the score of the proposed assignment is
+#' greater than or equal to the current assignment, the a function of the
+#' current temperature and the 2 scores is used to determine which assignment
+#' to return.
 #'
 #' @param cur.assignment Current assigment with score attribute (list)
 #' @param proposed.assignment Proposed assignment with no score (list)
-#' @param runtimes Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
-#' @param runtimes.summary Numeric matrix containing mean and variance of runtimes for each size
-#' @param deadline Time by which job must be complete (float). Same time units as runtimes
-#' @param max.temp Max temperature to use in the simulated annealing process (integer)
-#' @param max.iter Max # iterations to use to find the optimal assignment via simulated annealing (integer)
+#' @param runtimes Matrix of runtimes for the given instance type. Each row in
+#' the matrix represents a single training sample and has 2 columns. The size
+#' column is the size of task that was processed. The runtime_sec column is the
+#' time taken to process the task in seconds.
+#' @param runtimes.summary Numeric matrix containing mean and variance of
+#' runtimes for each size
+#' @param deadline Time by which job must be complete (float). Same time units
+#' as runtimes
+#' @param max.temp Max temperature to use in the simulated annealing process
+#' '(integer)
+#' @param max.iter Max # iterations to use to find the optimal assignment via
+#' simulated annealing (integer)
 #' @param cur.iter Value of current iteration (integer)
 #' @return A list containing the accepted assignment and score
 #' @export
@@ -742,7 +816,8 @@ move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
 # c.a <- get.score(c.a, r, rs, 120)
 # p.a <- get.neighbor(c.a)
 # a <- compare.assignments(c.a, p.a, r, rs, 120, 25, 100, 7)
-compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, runtimes.summary, deadline, max.temp, max.iter, cur.iter) {
+compare.assignments <- function(cur.assignment, proposed.assignment, runtimes,
+    runtimes.summary, deadline, max.temp, max.iter, cur.iter) {
 
   # Validate args
   .validate.assignment(cur.assignment)
@@ -754,17 +829,21 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, r
   .validate.runtimes.summary(runtimes.summary)
 
   .check.if.positive.real(deadline)
-  length(deadline) == 1 || stop("Invalid argument length: deadline must be a single +ve real number")
+  length(deadline) == 1 || stop("Invalid argument length:
+    deadline must be a single +ve real number")
 
   .check.if.positive.real(max.temp)
-  length(max.temp) == 1 || stop("Invalid argument length: max.temp must be a single +ve real number")
+  length(max.temp) == 1 || stop("Invalid argument length:
+    max.temp must be a single +ve real number")
 
   .check.if.positive.integer(max.iter)
 
   .check.if.nonnegative.integer(cur.iter)
-  if (cur.iter >= max.iter) { stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
+  if (cur.iter >= max.iter) { stop('Invalid argument:
+    cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
 
-	proposed.assignment <- get.score(proposed.assignment, runtimes, runtimes.summary, deadline)
+	proposed.assignment <-
+    get.score(proposed.assignment, runtimes, runtimes.summary, deadline)
 
   cat('CURRENT.assignment: \n')
   print(cur.assignment)
@@ -776,13 +855,15 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, r
 
 	if (attr(proposed.assignment, 'score') >= attr(cur.assignment, 'score')) {
     cat('PROPOSED.score >= current.score. Returning PROPOSED \n\n')
-    # new assignment has greater or equal prob. of completing job by deadline than current assignment
+    # new assignment has greater or equal prob. of completing job by
+    # deadline than current assignment
     result <- proposed.assignment
 
   } else {
 	  cat('proposed.score is lower \n')
 		temp <- get.temperature(max.temp, max.iter, cur.iter)
-		lhs <- round(exp((attr(proposed.assignment, 'score') - attr(cur.assignment, 'score'))/temp), 2)
+		lhs <- round(exp((attr(proposed.assignment, 'score') -
+      attr(cur.assignment, 'score'))/temp), 2)
 		rhs <- round(runif (1, min=0, max=1), 2)
     cat('temp=',temp, ' lhs=',lhs, ' rhs=',rhs, '\n')
 
@@ -805,10 +886,17 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes, r
 #' Get score for input assignment
 #'
 #' @param assignment The assignment which needs to be scored (list)
-#' @param runtimes Matrix of runtimes for the given instance type. Each row in the matrix represents a single training sample and has 2 columns. The size column is the size of task that was processed. The runtime_sec column is the time taken to process the task in seconds.
-#' @param runtimes.summary Numeric matrix containing mean and variance of runtimes for each size
-#' @param deadline Time by which job must complete (float; same units as runtimes)
-#' @return The input assignment with a value for the score attribute. Score is the probability of the assignment completing the job by the deadline based on the training set runtimes of the tasks in the job (float).
+#' @param runtimes Matrix of runtimes for the given instance type.
+#' Each row in the matrix represents a single training sample and has 2 columns.
+#' The size column is the size of task that was processed.
+#' The runtime_sec column is the time taken to process the task in seconds.
+#' @param runtimes.summary Numeric matrix containing mean and variance of
+#' runtimes for each size
+#' @param deadline Time by which job must complete
+#' '(float; same units as runtimes)
+#' @return The input assignment with a value for the score attribute. Score is
+#' the probability of the assignment completing the job by the deadline based
+#' on the training set runtimes of the tasks in the job (float).
 #' @export
 # @examples
 # data('m3xlarge.runtimes.expdist')
@@ -826,7 +914,8 @@ get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
   .validate.runtimes.summary(runtimes.summary)
 
   .check.if.positive.real(deadline)
-  length(deadline) == 1 || stop("Invalid argument length: deadline must be a single +ve real number")
+  length(deadline) == 1 || stop("Invalid argument length: deadline must be a
+    single +ve real number")
 
   num.instances <- length(assignment)
   scores <- matrix(nrow=num.instances, ncol=3)
@@ -846,24 +935,30 @@ get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
     if (num.tasks > bootstrap.threshold) {
       cat('Using Normal approx. to runtime dist. \n')
       means <- apply(g, 1,
-  					function(x) { runtimes.summary[which(runtimes.summary[,1] == x[1]), 2] * x[2] }
+  					function(x) {
+                runtimes.summary[which(runtimes.summary[,1] == x[1]), 2] * x[2]
+            }
   		)
 
   		vars <- apply(g, 1,
-  					function(x) { runtimes.summary[which(runtimes.summary[,1] == x[1]), 3] * x[2] }
+  					function(x) {
+              runtimes.summary[which(runtimes.summary[,1] == x[1]), 3] * x[2]
+            }
   		)
 
   		job.mean <- sum(means)
   		job.sd <- sqrt(sum(vars))
 
-      # score for this instance = Prob(tasks on this instance completing by deadline)
+      # score for this instance = Prob(tasks on this instance
+      # completing by deadline)
       scores[i,1] <- round(pnorm(deadline, mean=job.mean, sd=job.sd), 2)
       scores[i,2] <- round(qnorm(0.95, mean=job.mean, sd=job.sd), 2)
       scores[i,3] <- round(qnorm(0.99, mean=job.mean, sd=job.sd), 2)
 
     } else {
       cat('Using boostrap approx. to runtime dist. \n')
-      bootstrap.dist <- .bootstrap.get.job.runtime.dist(g, num.bootstrap.reps, runtimes)
+      bootstrap.dist <-
+        .bootstrap.get.job.runtime.dist(g, num.bootstrap.reps, runtimes)
 
       # Prob. of this instance completing by deadline
       ecdf.fn <- ecdf(bootstrap.dist)
@@ -893,9 +988,11 @@ get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
 #' Get temperature for current iteration
 #'
 #' @param max.temp Max value of temperature to use (float)
-#' @param max.iter Max number of iterations to search for optimal solution (integer)
+#' @param max.iter Max number of iterations to search for optimal solution
+#' '(integer)
 #' @param cur.iter Value of current iteration (integer)
-#' @param method Method used to decrease temperature. Currently only linear decrease of temperature with each iteration is supported
+#' @param method Method used to decrease temperature.
+#' Currently only linear decrease of temperature with iteration is supported
 #' @return Value of temperture for the current iteration (integer)
 #' @export
 #' @examples
@@ -904,15 +1001,18 @@ get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
 
   # Validate args
   .check.if.positive.real(max.temp)
-  length(max.temp) == 1 || stop("Invalid argument length: max.temp must be a single +ve real number")
+  length(max.temp) == 1 ||
+    stop("Invalid argument length: max.temp must be a single +ve real number")
   .check.if.positive.integer(max.iter)
   .check.if.nonnegative.integer(cur.iter)
-  if (cur.iter >= max.iter) { stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
+  cur.iter < max.iter) ||
+    stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter)
 
   if (method=='linear') {
     temp <- .get.temperature.linear.decrease(max.temp, max.iter, cur.iter)
   } else {
-    stop('Invalid argument: ', method, ' method of decreasing temperature is invalid!')
+    stop('Invalid argument: ', method,
+      ' method of decreasing temperature is invalid!')
   }# end if - linear decrease in temp?
 
   return (temp)
@@ -923,18 +1023,26 @@ get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
 
 #' Find optimal schedule
 #'
-#' Want an assignment with >= .95 probability of completing job by the deadline with the lowest makespan (cost)
+#' Want an assignment with >= .95 probability of completing job by the deadline
+#' with the lowest makespan (cost)
 #'
 #' @param job Array of integers representing sizes of tasks in job
 #' @param deadline Time (in seconds) by which job must be completed (integer)
-#' @param cluster.instance.type Instance type of cluster (string). All instances in the cluster are assumed to have the same instance type
-#' @param cluster.size Integer representing the number of instances in the cluster
-#' @param max.iter Max number of iterations to use to find the optimal assignment (integer)
-#' @param max.temp Max temperature to use in the simulated annealing process (flaot)
-#' @param reset.score.pct Begin next iteration from the best assignment if the difference between the best score and best score is more than this value
-#' @param reset.num.iters Begin next iteration from the best assignment if the number of iterations the score has not been increasing exceeds this value
+#' @param cluster.instance.type Instance type of cluster (string).
+#' All instances in the cluster are assumed to have the same instance type
+#' @param cluster.size Integer representing the number of instances
+#' in the cluster
+#' @param max.iter Max number of iterations to use to find the optimal
+#' assignment (integer)
+#' @param max.temp Max temperature to use in the simulated annealing
+#' process (flaot)
+#' @param reset.score.pct Begin next iteration from the best assignment if the
+#' difference between the best score and best score is more than this value
+#' @param reset.num.iters Begin next iteration from the best assignment if the
+#' number of iterations the score has not been increasing exceeds this value
 #' @param debug Print debug info
-#' @return A list representing the optimal assignment that could be found under the given constraints
+#' @return A list representing the optimal assignment that could be found under
+#' the given constraints
 #' @export
 #' @examples
 #' job <- c(1,60,100)
@@ -945,8 +1053,11 @@ get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
 #' max.temp <- 0.5
 #' data(m3xlarge.runtimes.expdist)
 #' setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
-#' best.schedule <- schedule(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp)
-schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.iter, max.temp, reset.score.pct=NULL, reset.num.iters=NULL, debug=FALSE) {
+#' best.schedule <- schedule(job, deadline, cluster.instance.type,
+#' cluster.size, max.iter, max.temp)
+schedule <- function(job, deadline, cluster.instance.type, cluster.size,
+    max.iter, max.temp, reset.score.pct=NULL, reset.num.iters=NULL, debug=FALSE)
+{
 
   start.time <- proc.time()
 
@@ -954,16 +1065,19 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
   if (!is.null(reset.num.iters)) .check.if.positive.integer(reset.num.iters)
 
   if (debug) {
-    output.prefix <- paste(cluster.size, '-inst-', length(job), '-tasks-', max.iter, '-SAiter-', num.bootstrap.reps, '-BSreps', sep='')
+    output.prefix <- paste(cluster.size, '-inst-', length(job), '-tasks-',
+      max.iter, '-SAiter-', num.bootstrap.reps, '-BSreps', sep='')
     filename <- filename <- paste(output.prefix, '.output.txt', sep='')
     sink(filename)
   }
 
   runtimes <- .get.trainingset.runtimes(cluster.instance.type)
-  runtimes.summary <- .get.trainingset.runtimes(cluster.instance.type, summary=T)
+  runtimes.summary <-
+    .get.trainingset.runtimes(cluster.instance.type, summary=T)
 
 	cur.assignment <- get.initial.assignment(cluster.size, job)
-	cur.assignment <- get.score(cur.assignment, runtimes, runtimes.summary, deadline)
+	cur.assignment <-
+    get.score(cur.assignment, runtimes, runtimes.summary, deadline)
 
 	best.assignment <- cur.assignment
   best.score <- attr(best.assignment, 'score')
@@ -971,7 +1085,9 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
 
   if (debug) {
     scores.timeseries <- matrix(nrow=(max.iter)+1, ncol=7)
-    colnames(scores.timeseries) <- c('Iter', paste('Acpt_', deadline, 's', sep=''), 'Acpt_95%', 'Acpt_99%', paste('Best_', deadline, 's', sep=''), 'Best_95%', 'Best_99%')
+    colnames(scores.timeseries) <-
+      c('Iter', paste('Acpt_', deadline, 's', sep=''), 'Acpt_95%', 'Acpt_99%',
+      paste('Best_', deadline, 's', sep=''), 'Best_95%', 'Best_99%')
 
     scores.timeseries[1,1] <- 1
 
@@ -986,18 +1102,23 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
     filename.ts <- paste(output.prefix, '-scores-timeseries.csv', sep='')
     conn <- file(filename.ts, open='wt')
       writeLines('# Input Params', con=conn)
-      writeLines(paste('# job.array = ', paste(job, collapse=';'), sep=''), con=conn)
+      writeLines(paste('# job.array = ', paste(job, collapse=';'), sep=''),
+        con=conn)
       writeLines(paste('# num.jobs = ', length(job), sep=''), con=conn)
       writeLines(paste('# deadline = ', deadline, sep=''), con=conn)
-      writeLines(paste('# cluster.instance.type = ', cluster.instance.type, sep=''), con=conn)
+      writeLines(paste('# cluster.instance.type = ',
+        cluster.instance.type, sep=''), con=conn)
       writeLines(paste('# cluster.size = ', cluster.size, sep=''), con=conn)
       writeLines(paste('# max.iter = ', max.iter, sep=''), con=conn)
       writeLines(paste('# max.temp = ', max.temp, sep=''), con=conn)
-      writeLines(paste('# reset.score.pct = ', ifelse(is.null(reset.score.pct), 'NULL', reset.score.pct), sep=''), con=conn)
-      writeLines(paste('# reset.num.iters = ', ifelse(is.null(reset.num.iters), 'NULL', reset.num.iters), sep=''), con=conn)
+      writeLines(paste('# reset.score.pct = ', ifelse(is.null(reset.score.pct),
+        'NULL', reset.score.pct), sep=''), con=conn)
+      writeLines(paste('# reset.num.iters = ', ifelse(is.null(reset.num.iters),
+        'NULL', reset.num.iters), sep=''), con=conn)
       writeLines(paste('# debug = ', debug, sep=''), con=conn)
 
-      write.table(t(scores.timeseries[1,]), file=conn, sep=',', quote=FALSE, row.names=FALSE)
+      write.table(t(scores.timeseries[1,]), file=conn, sep=',', quote=FALSE,
+        row.names=FALSE)
       flush(conn)
   } # end if - debug?
 
@@ -1006,10 +1127,12 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
 	# so we start at max temp and end just above 0 and avoid divide-by-zero errors
 	for (i in 0:(max.iter-1)) {
 
-    if (debug) cat('\n\n==========\nSA iter: ', i, ' (', (i+2), ') \n', '==========\n\n', sep='')
+    if (debug) cat('\n\n==========\nSA iter: ', i, ' (', (i+2), ') \n',
+      '==========\n\n', sep='')
 
 		proposed.assignment <- get.neighbor(cur.assignment)
-		cur.assignment <- compare.assignments(cur.assignment, proposed.assignment, runtimes, runtimes.summary, deadline, max.temp, max.iter, i)
+		cur.assignment <- compare.assignments(cur.assignment, proposed.assignment,
+        runtimes, runtimes.summary, deadline, max.temp, max.iter, i)
     cur.score <- attr(cur.assignment, 'score')
 
     # update best score, if necessary
@@ -1020,14 +1143,16 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
 
     if (debug) cat('best score=', best.score, '\n')
 
-    # restart from current best assignment if score of current assignment is too low
+    # restart from current best assignment if score of current assignment
+    # is too low
     if (!is.null(reset.score.pct)) {
       if (best.score == 0) best.score = 0.0001
       d <- (best.score - cur.score)
       d.pct <- 100*d/best.score
       if (d.pct > reset.score.pct) {
         cur.assignment <- best.assignment
-        if (debug) cat('Resetting current assignment to best assignment since d.pct=', d.pct, '. Best score so far = ', best.score, '\n', sep='')
+        if (debug) cat('Resetting current assignment to best assignment since
+          d.pct=', d.pct, '. Best score so far = ', best.score, '\n', sep='')
       } # end if - reset current assignment to best assignment
     } # end if - reset.score.pct defined?
 
@@ -1044,7 +1169,8 @@ schedule <- function(job, deadline, cluster.instance.type, cluster.size, max.ite
       scores.timeseries[(i+2),6] <- attr(best.assignment, 'runtime95pct')
       scores.timeseries[(i+2),7] <- attr(best.assignment, 'runtime99pct')
 
-      write.table(t(scores.timeseries[(i+2),]), file=conn, sep=',', quote=FALSE, row.names=FALSE, col.names=FALSE, append=TRUE)
+      write.table(t(scores.timeseries[(i+2),]), file=conn, sep=',', quote=FALSE,
+        row.names=FALSE, col.names=FALSE, append=TRUE)
       flush(conn)
     } # end if - debug?
 
