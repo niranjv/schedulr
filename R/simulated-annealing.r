@@ -1005,7 +1005,7 @@ get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
     stop("Invalid argument length: max.temp must be a single +ve real number")
   .check.if.positive.integer(max.iter)
   .check.if.nonnegative.integer(cur.iter)
-  cur.iter < max.iter) ||
+  cur.iter < max.iter ||
     stop('Invalid argument: cur.iter ', cur.iter, ' is >= max.iter ', max.iter)
 
   if (method=='linear') {
