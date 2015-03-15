@@ -31,7 +31,7 @@ num.bootstrap.reps <- 1000
 #' check.if.positive.integer(3.14)
 #' check.if.positive.integer(1:2)
 #' check.if.positive.integer('a')
-.check.if.positive.integer <- function(value) {
+.check.if.positive.integer <- function (value) {
 
   .check.if.nonnegative.integer(value)
   value > 0 || stop("Invalid argument: Value must be > 0")
@@ -53,7 +53,7 @@ num.bootstrap.reps <- 1000
 #' check.if.nonnegative.integer(3.14)
 #' check.if.nonnegative.integer(1:2)
 #' check.if.nonnegative.integer('a')
-.check.if.nonnegative.integer <- function(value) {
+.check.if.nonnegative.integer <- function (value) {
 
   !missing(value) || stop("Missing required argument: Must specify a value")
   length(value) == 1 || stop("Invalid argument length:
@@ -78,7 +78,7 @@ num.bootstrap.reps <- 1000
 #' .check.if.positive.real(-5)
 #' .check.if.positive.real(c(1.2, 3.4))
 #' .check.if.positive.real('a')
-.check.if.positive.real <- function(value) {
+.check.if.positive.real <- function (value) {
 
   .check.if.nonnegative.real(value)
   all(value > 0) || stop('Invalid argument: Value must be > 0')
@@ -98,7 +98,7 @@ num.bootstrap.reps <- 1000
 #' .check.if.nonnegative.real(c(1.2, 3.4))
 #' .check.if.nonnegative.real(3.14)
 #' .check.if.nonnegative.real('a')
-.check.if.nonnegative.real <- function(value) {
+.check.if.nonnegative.real <- function (value) {
 
   !missing(value) || stop('Missing required argument: Must specify a value')
   length(value) > 0 || stop('Invalid argument length: Must specify a value')
@@ -116,7 +116,7 @@ num.bootstrap.reps <- 1000
 #' a <- get.initial.assignment(2, 3)
 #' .validate.assignment(a)
 #' .validate.assignment(b<-NULL)
-.validate.assignment <- function(assignment) {
+.validate.assignment <- function (assignment) {
 
   !missing(assignment) || stop("Missing required argument: assignment")
   is.list(assignment) || stop("Invalid argument type:
@@ -142,7 +142,7 @@ num.bootstrap.reps <- 1000
 #' attr(a, 'runtime95pct') <- 0
 #' attr(a, 'runtime99pct') <- 0
 #' .validate.assignment.attributes(a)
-.validate.assignment.attributes <- function(assignment) {
+.validate.assignment.attributes <- function (assignment) {
 
   is.numeric(attr(assignment, 'score')) || stop("Invalid argument:
     assignment score must be a valid number")
@@ -176,7 +176,7 @@ num.bootstrap.reps <- 1000
 #' a <- get.initial.assignment(2, c(10))
 #' .validate.num.tasks.in.assignment(a, 2)
 #' .validate.num.tasks.in.assignment(a, 5)
-.validate.num.tasks.in.assignment <- function(assignment, num.tasks.required) {
+.validate.num.tasks.in.assignment <- function (assignment, num.tasks.required) {
 
   num.tasks.available <- length(unlist(assignment))
   if (num.tasks.available >= num.tasks.required) {
@@ -197,7 +197,7 @@ num.bootstrap.reps <- 1000
 #' @examples
 #' r <- matrix(c(1,1), nrow=1, ncol=2)
 #' .validate.runtimes.summary(r)
-.validate.runtimes <- function(runtimes) {
+.validate.runtimes <- function (runtimes) {
 
   !missing(runtimes) || stop("Missing required argument:
     Must specify a numeric matrix with 2 columns")
@@ -220,12 +220,12 @@ num.bootstrap.reps <- 1000
 
 #' Verify that runtime summaries are valid values
 #'
-#' @param runtimes.summary Numeric matrix containing mean and variance of
-#' runtimes for each size
+#' @param runtimes.summary Numeric matrix containing mean
+#' and variance of runtimes for each size
 #' @examples
 #' rs <- matrix(c(1,1,1), nrow=1, ncol=3)
 #' .validate.runtimes.summary(rs)
-.validate.runtimes.summary <- function(runtimes.summary) {
+.validate.runtimes.summary <- function (runtimes.summary) {
 
   !missing(runtimes.summary) || stop("Missing required argument:
     Must specify a numeric matrix with 2 columns")
@@ -248,7 +248,7 @@ num.bootstrap.reps <- 1000
 
 
 
-.validate.instance.type <- function(instance.type) {
+.validate.instance.type <- function (instance.type) {
 
   !missing(instance.type) || stop("Missing required argument:
     Must specify instance.type")
@@ -287,7 +287,7 @@ num.bootstrap.reps <- 1000
 #' the 3rd column is the variance of the runtimes for this size
 #' @examples
 #' .get.trainingset.runtimes('m3xlarge')
-.get.trainingset.runtimes <- function(instance.type, summary=F) {
+.get.trainingset.runtimes <- function (instance.type, summary=F) {
 
   if (summary) {
     varname <- paste(instance.type, '.runtimes.summary', sep='')
@@ -314,7 +314,7 @@ num.bootstrap.reps <- 1000
 #' the associated list member represents the task assigned to that instance
 #' @examples
 #' assignment <- get.initial.assignment.random(4, 1:30)
-.get.initial.assignment.random <- function(cluster.size, task.sizes) {
+.get.initial.assignment.random <- function (cluster.size, task.sizes) {
 
 	assignment <- vector('list', cluster.size)
   num.tasks <- length(task.sizes)
@@ -349,7 +349,7 @@ num.bootstrap.reps <- 1000
 #' rs[1,1] <- 10; rs[1,2] <- 23.5; rs[1,3] <- 2.5
 #' rs[2,1] <- 20; rs[2,2] <- 33.5; rs[2,3] <- 3.5
 #' assignment <- get.initial.assignment.leptf(2, rep(c(1,2), 3), rs)
-.get.initial.assignment.leptf <- function(cluster.size, task.sizes,
+.get.initial.assignment.leptf <- function (cluster.size, task.sizes,
   runtimes.summary) {
 
 	assignment <- vector('list', cluster.size)
@@ -357,7 +357,7 @@ num.bootstrap.reps <- 1000
   total.runtimes <- array(0, dim=cluster.size)
   num.tasks <- length(task.sizes)
 
-  means <- sapply(task.sizes, function(x) {
+  means <- sapply(task.sizes, function (x) {
     idx <- which(runtimes.summary[,1] == x); return(runtimes.summary[idx,2])
   })
   size.means <- cbind(task.sizes, means)
@@ -387,7 +387,7 @@ num.bootstrap.reps <- 1000
 
 
 #' Get list of instances that have the minimum number of tasks required
-.get.admissable.instances <- function(assignment, num.tasks.per.instance,
+.get.admissable.instances <- function (assignment, num.tasks.per.instance,
                                       num.instances.to.use) {
 
   num.tasks.in.instances <- lapply(assignment, length)
@@ -399,7 +399,7 @@ num.bootstrap.reps <- 1000
 
 
 #' Get number of instances depending on whether to exchange tasks or move tasks
-.get.num.instances <- function(exchange) {
+.get.num.instances <- function (exchange) {
   num.instances <- 1
   if (exchange) num.instances <- 2
 
@@ -417,7 +417,7 @@ num.bootstrap.reps <- 1000
 #' @return Value of temperture for the current iteration (integer)
 #' @examples
 #' temp <- .get.temperature.linear.decrease(25, 100, 7)
-.get.temperature.linear.decrease <- function(max.temp, max.iter, cur.iter) {
+.get.temperature.linear.decrease <- function (max.temp, max.iter, cur.iter) {
 
   # cur.iter is guaranteed to be at most 1 less than max.iter
 	# so cur.temp will always be > 0
@@ -434,7 +434,7 @@ num.bootstrap.reps <- 1000
 #' @param num.samples Number of samples required  (integer)
 #' @param runtimes Matrix containing size & runtime info for training set sample
 #' @return Matrix containing required number of samples for the given size
-.bootstrap.get.task.sample <- function(input.size, num.samples, runtimes) {
+.bootstrap.get.task.sample <- function (input.size, num.samples, runtimes) {
 
   varname <- paste('runtimes.', input.size, sep='')
   runtimes.cur.size <- get(varname, envir=data.env)
@@ -454,7 +454,7 @@ num.bootstrap.reps <- 1000
 
 
 #' Get bootstrapped samples for all sizes in the input job
-.bootstrap.get.job.sample <- function(size.reps.table, runtimes) {
+.bootstrap.get.job.sample <- function (size.reps.table, runtimes) {
 
 	# FORMAT of size.reps.table (generated via aggregate())
 	# > size.reps.table
@@ -465,7 +465,7 @@ num.bootstrap.reps <- 1000
 	# 4     850 1
 	# 5    2100 1
 
-	samples.list <- apply(size.reps.table, 1, function(x) {
+	samples.list <- apply(size.reps.table, 1, function (x) {
     .bootstrap.get.task.sample(x[1], x[2], runtimes)
   })
 	samples.matrix <- matrix(unlist(samples.list), ncol=2, byrow=TRUE)
@@ -475,7 +475,7 @@ num.bootstrap.reps <- 1000
 } # end function - .bootstrap.get.job.sample
 
 
-.bootstrap.get.job.runtime <- function(size.reps.table, runtimes) {
+.bootstrap.get.job.runtime <- function (size.reps.table, runtimes) {
 
 	samples.matrix <- .bootstrap.get.job.sample(size.reps.table, runtimes)
 	s <- sum(samples.matrix[,2])
@@ -485,7 +485,7 @@ num.bootstrap.reps <- 1000
 
 
 .bootstrap.get.job.runtime.dist <-
-  function(size.reps.table, num.bootstrap.reps, runtimes) {
+  function (size.reps.table, num.bootstrap.reps, runtimes) {
 
 	job.runtime.dist <- array(dim=num.bootstrap.reps)
 	for(i in 1:num.bootstrap.reps) {
@@ -518,7 +518,7 @@ num.bootstrap.reps <- 1000
 #' @examples
 #' runtimes <- cbind(rep(c(1,2), each=5), c(rpois(5,5), rpois(5,10)))
 #' setup.trainingset.runtimes('m3xlarge', runtimes)
-setup.trainingset.runtimes <- function(instance.type, runtimes) {
+setup.trainingset.runtimes <- function (instance.type, runtimes) {
 
   # Validate args
   .validate.instance.type(instance.type)
@@ -572,7 +572,7 @@ setup.trainingset.runtimes <- function(instance.type, runtimes) {
 #' rs[2,1] <- 20; rs[2,2] <- 33.5; rs[2,3] <- 3.5
 #' a <- get.initial.assignment(3, c(rep(10, 3), rep(20, 3)), rs, method='leptf')
 get.initial.assignment <-
-  function(cluster.size, task.sizes, runtimes.summary, method='random') {
+  function (cluster.size, task.sizes, runtimes.summary, method='random') {
 
   # Validate args
   .check.if.positive.integer(cluster.size)
@@ -618,7 +618,7 @@ get.initial.assignment <-
 #' @examples
 #' assignment <- get.initial.assignment(3, 1:30)
 #' proposed.assignment <- get.neighbor(assignment)
-get.neighbor <- function(assignment) {
+get.neighbor <- function (assignment) {
 
   ex <- sample(c(TRUE, FALSE), 1)
 
@@ -654,7 +654,7 @@ get.neighbor <- function(assignment) {
 #' assignment <- get.initial.assignment(3, 1:30)
 #' neighbor <- move.tasks(assignment, 1)
 #' neighbor <- move.tasks(assignment, 1, exchange=TRUE)
-move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
+move.tasks <- function (assignment, num.tasks, exchange=FALSE) {
 
   # Validate args
   .validate.assignment(assignment)
@@ -816,7 +816,7 @@ move.tasks <- function(assignment, num.tasks, exchange=FALSE) {
 # c.a <- get.score(c.a, r, rs, 120)
 # p.a <- get.neighbor(c.a)
 # a <- compare.assignments(c.a, p.a, r, rs, 120, 25, 100, 7)
-compare.assignments <- function(cur.assignment, proposed.assignment, runtimes,
+compare.assignments <- function (cur.assignment, proposed.assignment, runtimes,
     runtimes.summary, deadline, max.temp, max.iter, cur.iter) {
 
   # Validate args
@@ -905,7 +905,7 @@ compare.assignments <- function(cur.assignment, proposed.assignment, runtimes,
 # runtimes <- get('m3xlarge.runtimes', envir=data.env)
 # runtimes.summary <- get('m3xlarge.runtimes.summary', envir=data.env)
 # assignment <- get.score(assignment, runtimes, runtimes.summary, 60)
-get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
+get.score <- function (assignment, runtimes, runtimes.summary, deadline) {
 
   # Validate args
   .validate.assignment(assignment)
@@ -935,13 +935,13 @@ get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
     if (num.tasks > bootstrap.threshold) {
       cat('Using Normal approx. to runtime dist. \n')
       means <- apply(g, 1,
-  					function(x) {
+  					function (x) {
                 runtimes.summary[which(runtimes.summary[,1] == x[1]), 2] * x[2]
             }
   		)
 
   		vars <- apply(g, 1,
-  					function(x) {
+  					function (x) {
               runtimes.summary[which(runtimes.summary[,1] == x[1]), 3] * x[2]
             }
   		)
@@ -997,7 +997,7 @@ get.score <- function(assignment, runtimes, runtimes.summary, deadline) {
 #' @export
 #' @examples
 #' temp <- get.temperature(25, 100, 7)
-get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
+get.temperature <- function (max.temp, max.iter, cur.iter, method='linear') {
 
   # Validate args
   .check.if.positive.real(max.temp)
@@ -1055,7 +1055,7 @@ get.temperature <- function(max.temp, max.iter, cur.iter, method='linear') {
 #' setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
 #' best.schedule <- schedule(job, deadline, cluster.instance.type,
 #' cluster.size, max.iter, max.temp)
-schedule <- function(job, deadline, cluster.instance.type, cluster.size,
+schedule <- function (job, deadline, cluster.instance.type, cluster.size,
     max.iter, max.temp, reset.score.pct=NULL, reset.num.iters=NULL, debug=FALSE)
 {
 
