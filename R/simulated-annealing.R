@@ -1191,6 +1191,8 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
     best.assignment[[i]] <- sort(best.assignment[[i]], decreasing=TRUE)
   } # end for - loop over all instance
 
+  if (debug) attr(best.assignment, 'scores.ts') <- scores.timeseries
+
 	cat('\nBest score: ', attr(best.assignment, 'score'), '\n')
 	cat('Best assignment: \n')
 	print(best.assignment)
