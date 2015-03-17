@@ -620,6 +620,14 @@ get.initial.assignment <-
 #' proposed.assignment <- get.neighbor(assignment)
 get.neighbor <- function (assignment) {
 
+  # Validate args
+  .validate.assignment(assignment)
+
+  # Cannot get neighbors if cluster has < 2 instances
+  num.instances.in.assignment <- length(assignment)
+  if (num.instances.in.assignment < 2) { return (assignment) }
+
+
   ex <- sample(c(TRUE, FALSE), 1)
 
   num.tasks.in.instances <- sapply(assignment, length)
@@ -660,8 +668,9 @@ move.tasks <- function (assignment, num.tasks, exchange=FALSE) {
   .validate.assignment(assignment)
   .check.if.positive.integer(num.tasks)
 
-
-  # Need at least 2 instances in assignment to move or exchange tasks
+  # Need at least 2 instances to move/exchange tasks
+  #FIXME: this check is also present in get.neighbor. Needs to be removed
+  # after making this function internal so it is only called via get.neighbor()
   num.instances.in.assignment <- length(assignment)
   if (num.instances.in.assignment < 2) { return (assignment) }
 
