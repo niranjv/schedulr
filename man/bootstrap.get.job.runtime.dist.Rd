@@ -14,7 +14,7 @@ output from the aggregate() function.
 
 \item{num.bootstrap.reps}{Number of bootstrap replicates in distribution}
 
-\item{runtimes}{}
+\item{runtimes}{Matrix containing size & runtime info for training set sample}
 }
 \description{
 Get distribution of job runtime via bootstrap re-sampling
