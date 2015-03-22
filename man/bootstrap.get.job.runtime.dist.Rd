@@ -12,6 +12,8 @@ output from the aggregate() function.
 1st column is the task size
 2nd column is the number of tasks with this size}
 
+\item{num.bootstrap.reps}{Number of bootstrap replicates in distribution}
+
 \item{runtimes}{}
 }
 \description{
@@ -19,6 +21,7 @@ Get distribution of job runtime via bootstrap re-sampling
 }
 \examples{
 data(m3xlarge.runtimes.expdist)
+setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
 job <- c(1,60,100)
 srt <- aggregate(job, by=list(job), length)
 dist <- bootstrap.get.job.runtime.dist(srt, 500, m3xlarge.runtimes.expdist)
