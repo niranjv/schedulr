@@ -484,7 +484,20 @@ num.bootstrap.reps <- 1000
 } # end function - .bootstrap.get.job.runtime
 
 
-.bootstrap.get.job.runtime.dist <-
+#' Get distribution of job runtime via bootstrap re-sampling
+#'
+#' @param size.reps.table Data frame with 2 columns; typically obtained as the
+#' output from the aggregate() function.
+#' 1st column is the task size
+#' 2nd column is the number of tasks with this size
+#' @param runtimes
+#' @export
+#' @examples
+#' data(m3xlarge.runtimes.expdist)
+#' job <- c(1,60,100)
+#' srt <- aggregate(job, by=list(job), length)
+#' dist <- bootstrap.get.job.runtime.dist(srt, 500, m3xlarge.runtimes.expdist)
+bootstrap.get.job.runtime.dist <-
   function (size.reps.table, num.bootstrap.reps, runtimes) {
 
 	job.runtime.dist <- array(dim=num.bootstrap.reps)
@@ -495,7 +508,7 @@ num.bootstrap.reps <- 1000
 
 	return (job.runtime.dist)
 
-} # end function - .bootstrap.get.job.runtime.dist
+} # end function - bootstrap.get.job.runtime.dist
 
 
 
@@ -967,7 +980,7 @@ get.score <- function (assignment, runtimes, runtimes.summary, deadline) {
     } else {
       cat('Using boostrap approx. to runtime dist. \n')
       bootstrap.dist <-
-        .bootstrap.get.job.runtime.dist(g, num.bootstrap.reps, runtimes)
+        bootstrap.get.job.runtime.dist(g, num.bootstrap.reps, runtimes)
 
       # Prob. of this instance completing by deadline
       ecdf.fn <- ecdf(bootstrap.dist)
