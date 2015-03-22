@@ -190,7 +190,7 @@ num.bootstrap.reps <- 1000
 
 #' Verify that runtimes are valid values
 #'
-#' @param runtimes Matrix of runtime of past runs for the given instance type.
+#' @param runtimes Matrix of runtime of past runs for the given instance type
 #' Each row in the matrix represents a single training sample and has 2 columns.
 #' The size column is the size of task that was processed.
 #' The runtime_sec column is the time taken to process the task in seconds.
@@ -491,7 +491,7 @@ num.bootstrap.reps <- 1000
 #' 1st column is the task size
 #' 2nd column is the number of tasks with this size
 #' @param num.bootstrap.reps Number of bootstrap replicates in distribution
-#' @param runtimes
+#' @param runtimes Matrix containing size & runtime info for training set sample
 #' @export
 #' @examples
 #' data(m3xlarge.runtimes.expdist)
@@ -525,7 +525,7 @@ bootstrap.get.job.runtime.dist <-
 #'
 #' @param instance.type Instance type of cluster (string).
 #' All instances in the cluster are assumed to be of the same type
-#' @param runtimes Matrix of runtimes for the given instance type.
+#' @param runtimes Matrix of runtimes for the given instance type
 #' Each row in the matrix represents a single training sample and has 2 columns.
 #' The size column is the size of task that was processed.
 #' The runtime_sec column is the time taken to process the task in seconds.
