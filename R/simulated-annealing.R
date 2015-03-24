@@ -963,7 +963,7 @@ get.score <- function (assignment, runtimes, runtimes.summary, deadline) {
     g <- aggregate(tasks, by=list(tasks), FUN=length)
 
     if (num.tasks > bootstrap.threshold) {
-      cat('Using Normal approx. to runtime dist. \n')
+      # cat('Using Normal approx. to runtime dist. \n')
       means <- apply(g, 1,
   					function (x) {
                 runtimes.summary[which(runtimes.summary[,1] == x[1]), 2] * x[2]
@@ -986,7 +986,7 @@ get.score <- function (assignment, runtimes, runtimes.summary, deadline) {
       scores[i,3] <- round(qnorm(0.99, mean=job.mean, sd=job.sd), 2)
 
     } else {
-      cat('Using boostrap approx. to runtime dist. \n')
+      # cat('Using boostrap approx. to runtime dist. \n')
       bootstrap.dist <-
         bootstrap.get.job.runtime.dist(g, num.bootstrap.reps, runtimes)
 
