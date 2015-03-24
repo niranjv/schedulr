@@ -529,6 +529,7 @@ bootstrap.get.job.runtime.dist <-
 #' Each row in the matrix represents a single training sample and has 2 columns.
 #' The size column is the size of task that was processed.
 #' The runtime_sec column is the time taken to process the task in seconds.
+#' @return The environment in which the varibles were set up
 #' @export
 #' @examples
 #' runtimes <- cbind(rep(c(1,2), each=5), c(rpois(5,5), rpois(5,10)))
@@ -563,6 +564,8 @@ setup.trainingset.runtimes <- function (instance.type, runtimes) {
     ss <- subset(runtimes, runtimes[,1]==s)
     assign(varname, ss, envir=data.env)
   } # end for - loop over all sizes
+
+  return(data.env)
 
 } # end function - setup.trainingset.runtimes
 
@@ -914,8 +917,11 @@ compare.assignments <- function (cur.assignment, proposed.assignment, runtimes,
 #' Each row in the matrix represents a single training sample and has 2 columns.
 #' The size column is the size of task that was processed.
 #' The runtime_sec column is the time taken to process the task in seconds.
+#' Used only when getting distribution of job runtimes by bootstrap resampling.
 #' @param runtimes.summary Numeric matrix containing mean and variance of
 #' runtimes for each size
+#' Used only when getting distribution of job runtimes by Normal approximation
+#' via Central Limit Theorem.
 #' @param deadline Time by which job must complete
 #' '(float; same units as runtimes)
 #' @return The input assignment with a value for the score attribute. Score is
