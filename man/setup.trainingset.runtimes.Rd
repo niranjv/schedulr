@@ -15,6 +15,9 @@ Each row in the matrix represents a single training sample and has 2 columns.
 The size column is the size of task that was processed.
 The runtime_sec column is the time taken to process the task in seconds.}
 }
+\value{
+The environment in which the varibles were set up
+}
 \description{
 All instances in a cluster are assumed to be of the same type
 }

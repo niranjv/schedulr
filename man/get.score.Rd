@@ -12,10 +12,13 @@ get.score(assignment, runtimes, runtimes.summary, deadline)
 \item{runtimes}{Matrix of runtimes for the given instance type.
 Each row in the matrix represents a single training sample and has 2 columns.
 The size column is the size of task that was processed.
-The runtime_sec column is the time taken to process the task in seconds.}
+The runtime_sec column is the time taken to process the task in seconds.
+Used only when getting distribution of job runtimes by bootstrap resampling.}
 
 \item{runtimes.summary}{Numeric matrix containing mean and variance of
-runtimes for each size}
+runtimes for each size
+Used only when getting distribution of job runtimes by Normal approximation
+via Central Limit Theorem.}
 
 \item{deadline}{Time by which job must complete
 '(float; same units as runtimes)}
