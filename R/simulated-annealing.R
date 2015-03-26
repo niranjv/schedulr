@@ -935,7 +935,7 @@ compare.assignments <- function (cur.assignment, proposed.assignment, runtimes,
 # runtimes <- get('m3xlarge.runtimes', envir=data.env)
 # runtimes.summary <- get('m3xlarge.runtimes.summary', envir=data.env)
 # assignment <- get.score(assignment, runtimes, runtimes.summary, 60)
-get.score <- function (assignment, runtimes, runtimes.summary, deadline) {
+get.score <- function (assignment, runtimes, runtimes.summary, deadline, debug=FALSE) {
 
   # Validate args
   .validate.assignment(assignment)
@@ -1008,6 +1008,12 @@ get.score <- function (assignment, runtimes, runtimes.summary, deadline) {
   attr(assignment, 'deadline') <- deadline
   attr(assignment, 'runtime95pct') <- scores[min.idx, 2]
   attr(assignment, 'runtime99pct') <- scores[min.idx, 3]
+  if(debug && num.tasks > bootstrap.threshold) attr(assignment, 'norm.mean') <-
+    job.mean
+  if(debug && num.tasks > bootstrap.threshold) attr(assignment, 'norm.sd') <- 
+      job.sd
+  if(debug && num.tasks <= bootstrap.threshold) attr(assignment, 'boot.dist') <-
+    boot.dist
 
   return (assignment)
 
