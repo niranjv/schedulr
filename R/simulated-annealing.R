@@ -923,6 +923,7 @@ compare.assignments <- function (cur.assignment, proposed.assignment, runtimes,
 #' via Central Limit Theorem.
 #' @param deadline Time by which job must complete
 #' '(float; same units as runtimes)
+#' @param debug Return more info when running in debug mode
 #' @return The input assignment with a value for the score attribute. Score is
 #' the probability of the assignment completing the job by the deadline based
 #' on the training set runtimes of the tasks in the job (float).

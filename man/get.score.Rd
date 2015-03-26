@@ -22,6 +22,8 @@ via Central Limit Theorem.}
 
 \item{deadline}{Time by which job must complete
 '(float; same units as runtimes)}
+
+\item{debug}{Return more info when running in debug mode}
 }
 \value{
 The input assignment with a value for the score attribute. Score is
