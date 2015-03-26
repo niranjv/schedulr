@@ -492,14 +492,13 @@ num.bootstrap.reps <- 1000
 #' 2nd column is the number of tasks with this size
 #' @param num.bootstrap.reps Number of bootstrap replicates in distribution
 #' @param runtimes Matrix containing size & runtime info for training set sample
-#' @export
 #' @examples
 #' data(m3xlarge.runtimes.expdist)
 #' setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
 #' job <- c(1,60,100)
 #' srt <- aggregate(job, by=list(job), length)
-#' dist <- bootstrap.get.job.runtime.dist(srt, 500, m3xlarge.runtimes.expdist)
-bootstrap.get.job.runtime.dist <-
+#' dist <- .bootstrap.get.job.runtime.dist(srt, 500, m3xlarge.runtimes.expdist)
+.bootstrap.get.job.runtime.dist <-
   function (size.reps.table, num.bootstrap.reps, runtimes) {
 
 	job.runtime.dist <- array(dim=num.bootstrap.reps)
@@ -510,7 +509,7 @@ bootstrap.get.job.runtime.dist <-
 
 	return (job.runtime.dist)
 
-} # end function - bootstrap.get.job.runtime.dist
+} # end function - .bootstrap.get.job.runtime.dist
 
 
 
@@ -988,7 +987,7 @@ get.score <- function (assignment, runtimes, runtimes.summary, deadline, debug=F
     } else {
       # cat('Using boostrap approx. to runtime dist. \n')
       bootstrap.dist <-
-        bootstrap.get.job.runtime.dist(g, num.bootstrap.reps, runtimes)
+        .bootstrap.get.job.runtime.dist(g, num.bootstrap.reps, runtimes)
 
       # Prob. of this instance completing by deadline
       ecdf.fn <- ecdf(bootstrap.dist)
@@ -1010,7 +1009,7 @@ get.score <- function (assignment, runtimes, runtimes.summary, deadline, debug=F
   attr(assignment, 'runtime99pct') <- scores[min.idx, 3]
   if(debug && num.tasks > bootstrap.threshold) attr(assignment, 'norm.mean') <-
     job.mean
-  if(debug && num.tasks > bootstrap.threshold) attr(assignment, 'norm.sd') <- 
+  if(debug && num.tasks > bootstrap.threshold) attr(assignment, 'norm.sd') <-
       job.sd
   if(debug && num.tasks <= bootstrap.threshold) attr(assignment, 'boot.dist') <-
     boot.dist

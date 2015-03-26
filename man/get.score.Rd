@@ -4,7 +4,7 @@
 \alias{get.score}
 \title{Get score for input assignment}
 \usage{
-get.score(assignment, runtimes, runtimes.summary, deadline)
+get.score(assignment, runtimes, runtimes.summary, deadline, debug = FALSE)
 }
 \arguments{
 \item{assignment}{The assignment which needs to be scored (list)}
