@@ -1190,7 +1190,7 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
     # restart from current best schedule if score of current schedule
     # is too low
     if (!is.null(reset.score.pct)) {
-      d <- (best.processing.cost - cur.processing.cost)
+      d <- (cur.processing.cost - best.processing.cost)
       d.pct <- 100*d/best.processing.cost
       if (d.pct > reset.score.pct) {
         cur.schedule <- best.schedule
