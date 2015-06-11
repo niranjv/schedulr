@@ -883,7 +883,7 @@ compare.schedules <- function (cur.schedule, proposed.schedule, runtimes,
 
   # reject all schedules that are not feasible
   if (attr(proposed.schedule, 'score') > 0.95) {
-    return cur.schedule
+    return(cur.schedule)
   }
 
 	if (attr(proposed.schedule, 'processing.cost') <= attr(cur.schedule, 'processing.cost')) {
