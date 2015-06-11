@@ -10,7 +10,9 @@ data.env <- new.env()
 bootstrap.threshold <- 50
 num.bootstrap.reps <- 1000
 
-
+instance.types <- c('m3.xlarge')
+instance.speed <- c(3.25)
+instance.costs <- c(0.28)
 
 # -----
 # Internal functions for validating input
@@ -109,83 +111,83 @@ num.bootstrap.reps <- 1000
 } # end function - .check.if.nonnegative.real
 
 
-#' Verify that assignment is valid
+#' Verify that schedule is valid
 #'
-#' @param assignment Array of task sizes
+#' @param schedule Array of task sizes
 #' @examples
-#' a <- get.initial.assignment(2, 3)
-#' .validate.assignment(a)
-#' .validate.assignment(b<-NULL)
-.validate.assignment <- function (assignment) {
+#' a <- get.initial.schedule(2, 3)
+#' .validate.schedule(a)
+#' .validate.schedule(b<-NULL)
+.validate.schedule <- function (schedule) {
 
-  !missing(assignment) || stop("Missing required argument: assignment")
-  is.list(assignment) || stop("Invalid argument type:
-    assignment must be a list")
-  length(assignment) != 0 || stop("Invalid argument length:
-    assignment must contain at least 1 instance")
-  is.numeric(unlist(assignment)) || stop("Non-numeric argument:
+  !missing(schedule) || stop("Missing required argument: schedule")
+  is.list(schedule) || stop("Invalid argument type:
+    schedule must be a list")
+  length(schedule) != 0 || stop("Invalid argument length:
+    schedule must contain at least 1 instance")
+  is.numeric(unlist(schedule)) || stop("Non-numeric argument:
     tasks sizes must be valid numbers")
-  sum(unlist(assignment) <= 0) == 0 || stop("Invalid argument:
+  sum(unlist(schedule) <= 0) == 0 || stop("Invalid argument:
     tasks sizes must be > 0")
 
-} # end function - .validate.assignment
+} # end function - .validate.schedule
 
 
 
-#' Verify that assignment attributes are valid
+#' Verify that schedule attributes are valid
 #'
-#' @param assignment Array of task sizes
+#' @param schedule Array of task sizes
 #' @examples
-#' a <- get.initial.assignment(2, c(10))
-#' .validate.assignment.attributes(a)
+#' a <- get.initial.schedule(2, c(10))
+#' .validate.schedule.attributes(a)
 #' attr(a, 'score') <- 0
 #' attr(a, 'runtime95pct') <- 0
 #' attr(a, 'runtime99pct') <- 0
-#' .validate.assignment.attributes(a)
-.validate.assignment.attributes <- function (assignment) {
+#' .validate.schedule.attributes(a)
+.validate.schedule.attributes <- function (schedule) {
 
-  is.numeric(attr(assignment, 'score')) || stop("Invalid argument:
-    assignment score must be a valid number")
-  attr(assignment, 'score') >= 0 || stop("Invalid argument:
-    assignment score must be >= 0")
+  is.numeric(attr(schedule, 'score')) || stop("Invalid argument:
+    schedule score must be a valid number")
+  attr(schedule, 'score') >= 0 || stop("Invalid argument:
+    schedule score must be >= 0")
 
-  is.numeric(attr(assignment, 'deadline')) || stop("Invalid argument:
-    assignment deadline must be a valid number")
-  attr(assignment, 'deadline') > 0 || stop("Invalid argument:
+  is.numeric(attr(schedule, 'deadline')) || stop("Invalid argument:
+    schedule deadline must be a valid number")
+  attr(schedule, 'deadline') > 0 || stop("Invalid argument:
     deadline must be > 0")
 
-  is.numeric(attr(assignment, 'runtime95pct')) || stop("Invalid argument:
-    assignment runtime95pct must be a valid number")
-  attr(assignment, 'runtime95pct') >= 0 || stop("Invalid argument:
-    assignment runtime95pct must be >= 0")
+  is.numeric(attr(schedule, 'runtime95pct')) || stop("Invalid argument:
+    schedule runtime95pct must be a valid number")
+  attr(schedule, 'runtime95pct') >= 0 || stop("Invalid argument:
+    schedule runtime95pct must be >= 0")
 
-  is.numeric(attr(assignment, 'runtime99pct')) || stop("Invalid argument:
-    assignment runtime99pct must be a valid number")
-  attr(assignment, 'runtime99pct') >= 0 || stop("Invalid argument:
-    assignment runtime99pct must be >= 0")
+  is.numeric(attr(schedule, 'runtime99pct')) || stop("Invalid argument:
+    schedule runtime99pct must be a valid number")
+  attr(schedule, 'runtime99pct') >= 0 || stop("Invalid argument:
+    schedule runtime99pct must be >= 0")
 
-} # end function - .validate.assignment
+} # end function - .validate.schedule
 
 
 
-#' Verify that the assignment has the minimum number of tasks required
+#' Verify that the schedule has the minimum number of tasks required
 #'
-#' @param assignment List mapping tasks to instances
-#' @param min.num.tasks Minimum number of tasks in assignment
+#' @param schedule List mapping tasks to instances
+#' @param min.num.tasks Minimum number of tasks in schedule
 #' @examples
-#' a <- get.initial.assignment(2, c(10))
-#' .validate.num.tasks.in.assignment(a, 2)
-#' .validate.num.tasks.in.assignment(a, 5)
-.validate.num.tasks.in.assignment <- function (assignment, num.tasks.required) {
+#' a <- get.initial.schedule(2, c(10))
+#' .validate.num.tasks.in.schedule(a, 2)
+#' .validate.num.tasks.in.schedule(a, 5)
+.validate.num.tasks.in.schedule <- function (schedule, num.tasks.required) {
 
-  num.tasks.available <- length(unlist(assignment))
+  num.tasks.available <- length(unlist(schedule))
   if (num.tasks.available >= num.tasks.required) {
     return (TRUE)
   } else {
     return (FALSE)
   } # end if - move more tasks than available?
 
-} # end function .validate.num.tasks.in.assignment
+} # end function .validate.num.tasks.in.schedule
 
 
 #' Verify that runtimes are valid values
@@ -304,19 +306,19 @@ num.bootstrap.reps <- 1000
 
 
 
-#' Get initial assignment of tasks to instances in a cluster
+#' Get initial schedule of tasks to instances in a cluster
 #'
 #' Tasks are randomly assigned to instances
 #'
-#' @inheritParams get.initial.assignment
+#' @inheritParams get.initial.schedule
 #' @return List containing a mapping of tasks to instances in cluster.
 #' The list index represents the id of an instance in the cluster while
 #' the associated list member represents the task assigned to that instance
 #' @examples
-#' assignment <- get.initial.assignment.random(4, 1:30)
-.get.initial.assignment.random <- function (cluster.size, task.sizes) {
+#' schedule <- get.initial.schedule.random(4, 1:30)
+.get.initial.schedule.random <- function (cluster.size, task.sizes) {
 
-	assignment <- vector('list', cluster.size)
+	schedule <- vector('list', cluster.size)
   num.tasks <- length(task.sizes)
   idx.shuffle <- sample(num.tasks, replace=F)
   shuffled.task.sizes <- task.sizes[idx.shuffle]
@@ -324,23 +326,23 @@ num.bootstrap.reps <- 1000
 	for (i in 1:num.tasks) {
 
     # get random instance
-    inst <- sample(length(assignment), 1)
-		assignment[[inst]] <- c(assignment[[inst]], shuffled.task.sizes[i])
+    inst <- sample(length(schedule), 1)
+		schedule[[inst]] <- c(schedule[[inst]], shuffled.task.sizes[i])
 
 	} # end for - loop over all tasks in order
 
-	return (assignment)
+	return (schedule)
 
-} # end function - get.initial.assignment.random
+} # end function - get.initial.schedule.random
 
 
 
-#' Get initial assignment of tasks to instances in a cluster
+#' Get initial schedule of tasks to instances in a cluster
 #'
 #' Tasks are assigned to instances in decreasing order of expected processing
 #' time (i.e., Longest Expected Processing Time First rule)
 #'
-#' @inheritParams get.initial.assignment
+#' @inheritParams get.initial.schedule
 #' @return List containing a mapping of tasks to instances in cluster.
 #' The list index represents the id of an instance in the cluster while the
 #' associated list member represents the task assigned to that instance
@@ -348,11 +350,11 @@ num.bootstrap.reps <- 1000
 #' rs <- matrix(nrow=2, ncol=3)
 #' rs[1,1] <- 10; rs[1,2] <- 23.5; rs[1,3] <- 2.5
 #' rs[2,1] <- 20; rs[2,2] <- 33.5; rs[2,3] <- 3.5
-#' assignment <- get.initial.assignment.leptf(2, rep(c(1,2), 3), rs)
-.get.initial.assignment.leptf <- function (cluster.size, task.sizes,
+#' schedule <- get.initial.schedule.leptf(2, rep(c(1,2), 3), rs)
+.get.initial.schedule.leptf <- function (cluster.size, task.sizes,
   runtimes.summary) {
 
-	assignment <- vector('list', cluster.size)
+	schedule <- vector('list', cluster.size)
   # to keep track of total runtimes in each instance
   total.runtimes <- array(0, dim=cluster.size)
   num.tasks <- length(task.sizes)
@@ -373,24 +375,24 @@ num.bootstrap.reps <- 1000
     # which.min returns the first. For our purposes, it doesn't matter which of
     # the instances with the lowest total is used next.
 
-		assignment[[instance.with.smallest.total.runtime]] <-
-    c(assignment[[instance.with.smallest.total.runtime]], size.means[i,1])
+		schedule[[instance.with.smallest.total.runtime]] <-
+    c(schedule[[instance.with.smallest.total.runtime]], size.means[i,1])
     total.runtimes[instance.with.smallest.total.runtime] <-
     total.runtimes[instance.with.smallest.total.runtime] + size.means[i,2]
 
 	} # end for - loop over all tasks in order
 
-	return (assignment)
+	return (schedule)
 
-} # end function - get.initial.assignment.leptf
+} # end function - get.initial.schedule.leptf
 
 
 
 #' Get list of instances that have the minimum number of tasks required
-.get.admissable.instances <- function (assignment, num.tasks.per.instance,
+.get.admissable.instances <- function (schedule, num.tasks.per.instance,
                                       num.instances.to.use) {
 
-  num.tasks.in.instances <- lapply(assignment, length)
+  num.tasks.in.instances <- lapply(schedule, length)
   admissable.instances <-
     which(num.tasks.in.instances >= num.tasks.per.instance)
   return (admissable.instances)
@@ -570,7 +572,7 @@ setup.trainingset.runtimes <- function (instance.type, runtimes) {
 
 
 
-#' Get initial assignment of jobs to instances in a cluster
+#' Get initial schedule of jobs to instances in a cluster
 #'
 #' @param cluster.size Number of instances in the cluster (+ve integer)
 #' @param task.sizes Array of task sizes (+ve reals)
@@ -583,12 +585,12 @@ setup.trainingset.runtimes <- function (instance.type, runtimes) {
 #' the associated list member represents the task assigned to that instance
 #' @export
 #' @examples
-#' a <- get.initial.assignment(3, 1:30)
+#' a <- get.initial.schedule(3, 1:30)
 #' rs <- matrix(nrow=2, ncol=3)
 #' rs[1,1] <- 10; rs[1,2] <- 23.5; rs[1,3] <- 2.5
 #' rs[2,1] <- 20; rs[2,2] <- 33.5; rs[2,3] <- 3.5
-#' a <- get.initial.assignment(3, c(rep(10, 3), rep(20, 3)), rs, method='leptf')
-get.initial.assignment <-
+#' a <- get.initial.schedule(3, c(rep(10, 3), rep(20, 3)), rs, method='leptf')
+get.initial.schedule <-
   function (cluster.size, task.sizes, runtimes.summary, method='random') {
 
   # Validate args
@@ -596,25 +598,25 @@ get.initial.assignment <-
   .check.if.positive.real(task.sizes)
 
   if (method=='random') {
-    assignment <- .get.initial.assignment.random(cluster.size, task.sizes)
+    schedule <- .get.initial.schedule.random(cluster.size, task.sizes)
   } else if (method=='leptf') {
     .validate.runtimes.summary(runtimes.summary)
-    assignment <- .get.initial.assignment.leptf(
+    schedule <- .get.initial.schedule.leptf(
       cluster.size, task.sizes, runtimes.summary
     )
   } else {
     stop('Invalid argument: ', method, ' is not a valid value for method')
   } # end if - method=random?
 
-  return (assignment)
+  return (schedule)
 
-} # end function - get.initial.assignment
+} # end function - get.initial.schedule
 
 
 
-#' Generate a neighbor to an assignment
+#' Generate a neighbor to an schedule
 #'
-#' The input assignment is modified in one of several different ways, including
+#' The input schedule is modified in one of several different ways, including
 #' \itemize{
 #'  \item Move a task from 1 instance to another
 #'  \item Exchange a task with another instance
@@ -627,34 +629,34 @@ get.initial.assignment <-
 #' Only the first 2 methods are currently implemented with an equal probability
 #' of selecting either method.
 #'
-#' @param assignment A list representing a mapping of tasks to instances in a
+#' @param schedule A list representing a mapping of tasks to instances in a
 #' cluster
-#' @return A list representing the modified assignment of tasks to instances in
+#' @return A list representing the modified schedule of tasks to instances in
 #' the cluster
 #' @export
 #' @examples
-#' assignment <- get.initial.assignment(3, 1:30)
-#' proposed.assignment <- get.neighbor(assignment)
-get.neighbor <- function (assignment) {
+#' schedule <- get.initial.schedule(3, 1:30)
+#' proposed.schedule <- get.neighbor(schedule)
+get.neighbor <- function (schedule) {
 
   # Validate args
-  .validate.assignment(assignment)
+  .validate.schedule(schedule)
 
   # Cannot get neighbors if cluster has < 2 instances
-  num.instances.in.assignment <- length(assignment)
-  if (num.instances.in.assignment < 2) { return (assignment) }
+  num.instances.in.schedule <- length(schedule)
+  if (num.instances.in.schedule < 2) { return (schedule) }
 
 
   ex <- sample(c(TRUE, FALSE), 1)
 
-  num.tasks.in.instances <- sapply(assignment, length)
+  num.tasks.in.instances <- sapply(schedule, length)
   num.tasks.in.instances <- round(num.tasks.in.instances/3)
   num.tasks <- sample(max(num.tasks.in.instances), 1)
 
   if (ex) { cat('Exchange', num.tasks, 'tasks \n\n') }
   else { cat('Move', num.tasks, 'tasks \n\n') }
 
-  neighbor <- move.tasks(assignment, num.tasks, exchange=ex)
+  neighbor <- move.tasks(schedule, num.tasks, exchange=ex)
 
   return (neighbor)
 
@@ -668,41 +670,41 @@ get.neighbor <- function (assignment) {
 #' of the instances and move it to the other instance. Simple random sampling
 #' without replacement is used in both sampling stages.
 #'
-#' @param assignment A list representing the assignment for which a neighbor is
+#' @param schedule A list representing the schedule for which a neighbor is
 #' desired
 #' @param num.tasks Integer representing the number of tasks to be moved from 1
 #' instance to another
 #' @param exchange Exchange tasks between instances instead of moving them
-#' @return A list representing the neighboring assignment
+#' @return A list representing the neighboring schedule
 #' @export
 #' @examples
-#' assignment <- get.initial.assignment(3, 1:30)
-#' neighbor <- move.tasks(assignment, 1)
-#' neighbor <- move.tasks(assignment, 1, exchange=TRUE)
-move.tasks <- function (assignment, num.tasks, exchange=FALSE) {
+#' schedule <- get.initial.schedule(3, 1:30)
+#' neighbor <- move.tasks(schedule, 1)
+#' neighbor <- move.tasks(schedule, 1, exchange=TRUE)
+move.tasks <- function (schedule, num.tasks, exchange=FALSE) {
 
   # Validate args
-  .validate.assignment(assignment)
+  .validate.schedule(schedule)
   .check.if.positive.integer(num.tasks)
 
   # Need at least 2 instances to move/exchange tasks
   #FIXME: this check is also present in get.neighbor. Needs to be removed
   # after making this function internal so it is only called via get.neighbor()
-  num.instances.in.assignment <- length(assignment)
-  if (num.instances.in.assignment < 2) { return (assignment) }
+  num.instances.in.schedule <- length(schedule)
+  if (num.instances.in.schedule < 2) { return (schedule) }
 
 
-  # Check if we have sufficient # tasks in the assignment (across all instances)
+  # Check if we have sufficient # tasks in the schedule (across all instances)
   if (exchange) {
     # Check if we have enough tasks to exchange
-    valid <- .validate.num.tasks.in.assignment(assignment, 2*num.tasks)
+    valid <- .validate.num.tasks.in.schedule(schedule, 2*num.tasks)
 
     if (! valid) {
       # If not, check if we have enough tasks to move
       cat('WARN: Cannot exchange', num.tasks, ' tasks between 2 instances.
         Moving', num.tasks, 'tasks instead. \n')
       exchange <- FALSE
-      valid <- .validate.num.tasks.in.assignment(assignment, num.tasks)
+      valid <- .validate.num.tasks.in.schedule(schedule, num.tasks)
       if (! valid) {
         # If not, fail
         stop("Invalid argument: Insufficient number of task to move")
@@ -711,7 +713,7 @@ move.tasks <- function (assignment, num.tasks, exchange=FALSE) {
 
   } else {
     # Check if we have enough tasks to move
-    valid <- .validate.num.tasks.in.assignment(assignment, num.tasks)
+    valid <- .validate.num.tasks.in.schedule(schedule, num.tasks)
     if (! valid) {
       # If not, fail
       stop("Invalid argument: Insufficient number of task to move")
@@ -728,7 +730,7 @@ move.tasks <- function (assignment, num.tasks, exchange=FALSE) {
 
   # Get all instances with at least num.tasks tasks
   all.admissable.instances <-
-    .get.admissable.instances(assignment, num.tasks, num.instances.to.use)
+    .get.admissable.instances(schedule, num.tasks, num.instances.to.use)
 
   # Can fail to get sufficient # admissable instances when:
   # exchange & # instances < 2
@@ -745,7 +747,7 @@ move.tasks <- function (assignment, num.tasks, exchange=FALSE) {
     num.instances.to.use <- .get.num.instances(exchange) # use 1 instance
     num.tasks <- 1
     all.admissable.instances <-
-      .get.admissable.instances(assignment, num.tasks, num.instances.to.use)
+      .get.admissable.instances(schedule, num.tasks, num.instances.to.use)
 
     if(length(all.admissable.instances) < 1) {
       stop("Error: Cannot find a single instance with at least 1 task!")
@@ -763,13 +765,13 @@ move.tasks <- function (assignment, num.tasks, exchange=FALSE) {
   for (i in 1:num.instances.to.use) {
 
     inst <- admissable.instances.sample[i]
-    num.tasks.in.instance <- length(assignment[[inst]])
+    num.tasks.in.instance <- length(schedule[[inst]])
     idx.tasks <- sample(1:num.tasks.in.instance, num.tasks)
-    tasks <- assignment[[inst]][idx.tasks]
+    tasks <- schedule[[inst]][idx.tasks]
 
-    assignment[[inst]] = assignment[[inst]][-idx.tasks]
-    num.remaining.tasks.in.instance <- length(assignment[[inst]])
-    if (num.remaining.tasks.in.instance == 0) assignment[inst] <- list(NULL)
+    schedule[[inst]] = schedule[[inst]][-idx.tasks]
+    num.remaining.tasks.in.instance <- length(schedule[[inst]])
+    if (num.remaining.tasks.in.instance == 0) schedule[inst] <- list(NULL)
 
     tasks.mat[i,] <- tasks
   } # end for - loop over all instances
@@ -778,45 +780,45 @@ move.tasks <- function (assignment, num.tasks, exchange=FALSE) {
   # TODO: need a more general way to do this
   if (exchange) {
     instance1 <- admissable.instances.sample[1]
-    assignment[[instance1]] <- c(assignment[[instance1]], tasks.mat[2,])
+    schedule[[instance1]] <- c(schedule[[instance1]], tasks.mat[2,])
 
     instance2 <- admissable.instances.sample[2]
-    assignment[[instance2]] <- c(assignment[[instance2]], tasks.mat[1,])
+    schedule[[instance2]] <- c(schedule[[instance2]], tasks.mat[1,])
 
   } else {
     # Get acceptor instance
     idx.remaining.instances <-
-      (1:length(assignment))[-admissable.instances.sample]
+      (1:length(schedule))[-admissable.instances.sample]
     num.remaining.instances <- length(idx.remaining.instances)
     if (num.remaining.instances == 1) { instance2 <- idx.remaining.instances }
     else { instance2 <- sample(c(idx.remaining.instances), 1) }
 
     # Move the task to this instance
-    assignment[[instance2]] <- c(assignment[[instance2]], tasks.mat[1,])
+    schedule[[instance2]] <- c(schedule[[instance2]], tasks.mat[1,])
 
   } # end if - move only?
 
-  attr(assignment, 'score') <- NULL
-  attr(assignment, 'runtime95pct') <- NULL
-  attr(assignment, 'runtime99pct') <- NULL
+  attr(schedule, 'score') <- NULL
+  attr(schedule, 'runtime95pct') <- NULL
+  attr(schedule, 'runtime99pct') <- NULL
 
-  return (assignment)
+  return (schedule)
 
 } # end sub - move.tasks
 
 
 
-#' Compare 2 assignments based on their score
+#' Compare 2 schedules based on their score
 #'
-#' Scores are calculated for both assignments. If the score of the proposed
-#' assignment is lower than the score for the current assignment, the proposed
-#' assignment and score are returned. If the score of the proposed assignment is
-#' greater than or equal to the current assignment, the a function of the
-#' current temperature and the 2 scores is used to determine which assignment
+#' Scores are calculated for both schedules. If the score of the proposed
+#' schedule is lower than the score for the current schedule, the proposed
+#' schedule and score are returned. If the score of the proposed schedule is
+#' greater than or equal to the current schedule, the a function of the
+#' current temperature and the 2 scores is used to determine which schedule
 #' to return.
 #'
-#' @param cur.assignment Current assigment with score attribute (list)
-#' @param proposed.assignment Proposed assignment with no score (list)
+#' @param cur.schedule Current assigment with score attribute (list)
+#' @param proposed.schedule Proposed schedule with no score (list)
 #' @param runtimes Matrix of runtimes for the given instance type. Each row in
 #' the matrix represents a single training sample and has 2 columns. The size
 #' column is the size of task that was processed. The runtime_sec column is the
@@ -827,10 +829,10 @@ move.tasks <- function (assignment, num.tasks, exchange=FALSE) {
 #' as runtimes
 #' @param max.temp Max temperature to use in the simulated annealing process
 #' '(integer)
-#' @param max.iter Max # iterations to use to find the optimal assignment via
+#' @param max.iter Max # iterations to use to find the optimal schedule via
 #' simulated annealing (integer)
 #' @param cur.iter Value of current iteration (integer)
-#' @return A list containing the accepted assignment and score
+#' @return A list containing the accepted schedule and score
 #' @export
 # @examples
 # data('m3xlarge.runtimes.expdist')
@@ -838,18 +840,18 @@ move.tasks <- function (assignment, num.tasks, exchange=FALSE) {
 # r <- get('m3xlarge.runtimes', envir=data.env)
 # rs <- get('m3xlarge.runtimes.summary', envir=data.env)
 # assign('runtimes.1', r, envir='data.env')
-# c.a <- get.initial.assignment(2, c(1,1,1,1))
+# c.a <- get.initial.schedule(2, c(1,1,1,1))
 # c.a <- get.score(c.a, r, rs, 120)
 # p.a <- get.neighbor(c.a)
-# a <- compare.assignments(c.a, p.a, r, rs, 120, 25, 100, 7)
-compare.assignments <- function (cur.assignment, proposed.assignment, runtimes,
+# a <- compare.schedules(c.a, p.a, r, rs, 120, 25, 100, 7)
+compare.schedules <- function (cur.schedule, proposed.schedule, runtimes,
     runtimes.summary, deadline, max.temp, max.iter, cur.iter) {
 
   # Validate args
-  .validate.assignment(cur.assignment)
-  .validate.assignment.attributes(cur.assignment)
-  .check.if.nonnegative.real(attr(cur.assignment, 'score'))
-  .validate.assignment(proposed.assignment)
+  .validate.schedule(cur.schedule)
+  .validate.schedule.attributes(cur.schedule)
+  .check.if.nonnegative.real(attr(cur.schedule, 'score'))
+  .validate.schedule(proposed.schedule)
 
   .validate.runtimes(runtimes)
   .validate.runtimes.summary(runtimes.summary)
@@ -868,50 +870,55 @@ compare.assignments <- function (cur.assignment, proposed.assignment, runtimes,
   if (cur.iter >= max.iter) { stop('Invalid argument:
     cur.iter ', cur.iter, ' is >= max.iter ', max.iter) }
 
-	proposed.assignment <-
-    get.score(proposed.assignment, runtimes, runtimes.summary, deadline)
+	proposed.schedule <-
+    get.score(proposed.schedule, runtimes, runtimes.summary, deadline)
 
-  cat('CURRENT.assignment: \n')
-  print(cur.assignment)
+  cat('CURRENT.schedule: \n')
+  print(cur.schedule)
   cat('\n')
 
-  cat('PROPOSED.assignment \n')
-  print(proposed.assignment)
+  cat('PROPOSED.schedule \n')
+  print(proposed.schedule)
   cat('\n')
 
-	if (attr(proposed.assignment, 'score') >= attr(cur.assignment, 'score')) {
-    cat('PROPOSED.score >= current.score. Returning PROPOSED \n\n')
-    # new assignment has greater or equal prob. of completing job by
-    # deadline than current assignment
-    result <- proposed.assignment
+  # reject all schedules that are not feasible
+  if (attr(proposed.schedule, 'score') > 0.95) {
+    return cur.schedule
+  }
+
+	if (attr(proposed.schedule, 'processing.cost') <= attr(cur.schedule, 'processing.cost')) {
+    cat('PROPOSED.processing.cost <= current.processing.cost. Returning PROPOSED \n\n')
+    # new schedule has greater or equal prob. of completing job by
+    # deadline than current schedule
+    result <- proposed.schedule
 
   } else {
-	  cat('proposed.score is lower \n')
+	  cat('proposed.processing.cost is higher \n')
 		temp <- get.temperature(max.temp, max.iter, cur.iter)
-		lhs <- round(exp((attr(proposed.assignment, 'score') -
-      attr(cur.assignment, 'score'))/temp), 2)
+		lhs <- round(exp((attr(proposed.schedule, 'processing.cost') -
+      attr(cur.schedule, 'processing.cost'))/temp), 2)
 		rhs <- round(runif (1, min=0, max=1), 2)
     cat('temp=',temp, ' lhs=',lhs, ' rhs=',rhs, '\n')
 
 		if (lhs > rhs) {
       cat('lhs > rhs; returning PROPOSED \n\n')
-      result <- proposed.assignment
+      result <- proposed.schedule
 		} else {
       cat('lhs <= rhs; returning CURRENT \n\n')
-      result <- cur.assignment
+      result <- cur.schedule
 		} # end if - lhs > rhs?
 
 	} # end if - proposed.score >= cur.score?
 
   return (result)
 
-} # end function - compare.assignments
+} # end function - compare.schedules
 
 
 
-#' Get score for input assignment
+#' Get score for input schedule
 #'
-#' @param assignment The assignment which needs to be scored (list)
+#' @param schedule The schedule which needs to be scored (list)
 #' @param runtimes Matrix of runtimes for the given instance type.
 #' Each row in the matrix represents a single training sample and has 2 columns.
 #' The size column is the size of task that was processed.
@@ -924,21 +931,21 @@ compare.assignments <- function (cur.assignment, proposed.assignment, runtimes,
 #' @param deadline Time by which job must complete
 #' '(float; same units as runtimes)
 #' @param debug Return more info when running in debug mode
-#' @return The input assignment with a value for the score attribute. Score is
-#' the probability of the assignment completing the job by the deadline based
+#' @return The input schedule with a value for the score attribute. Score is
+#' the probability of the schedule completing the job by the deadline based
 #' on the training set runtimes of the tasks in the job (float).
 #' @export
 # @examples
 # data('m3xlarge.runtimes.expdist')
 # setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
-# assignment <- get.initial.assignment(2, c(1,1,1,1))
+# schedule <- get.initial.schedule(2, c(1,1,1,1))
 # runtimes <- get('m3xlarge.runtimes', envir=data.env)
 # runtimes.summary <- get('m3xlarge.runtimes.summary', envir=data.env)
-# assignment <- get.score(assignment, runtimes, runtimes.summary, 60)
-get.score <- function (assignment, runtimes, runtimes.summary, deadline, debug=FALSE) {
+# schedule <- get.score(schedule, runtimes, runtimes.summary, 60)
+get.score <- function (schedule, runtimes, runtimes.summary, deadline, debug=FALSE) {
 
   # Validate args
-  .validate.assignment(assignment)
+  .validate.schedule(schedule)
 
   .validate.runtimes(runtimes)
   .validate.runtimes.summary(runtimes.summary)
@@ -947,12 +954,12 @@ get.score <- function (assignment, runtimes, runtimes.summary, deadline, debug=F
   length(deadline) == 1 || stop("Invalid argument length: deadline must be a
     single +ve real number")
 
-  num.instances <- length(assignment)
+  num.instances <- length(schedule)
   scores <- matrix(nrow=num.instances, ncol=3)
 
   for (i in 1:num.instances) {
 
-    tasks <- assignment[[i]]
+    tasks <- schedule[[i]]
     num.tasks <- length(tasks)
 
     if (num.tasks == 0) {
@@ -999,23 +1006,24 @@ get.score <- function (assignment, runtimes, runtimes.summary, deadline, debug=F
 
     } # end if - more than bootstrap.threshold tasks?
 
-  } # end for - loop over all instances in assignment
+  } # end for - loop over all instances in schedule
 
   # Return score & times of instance with least prob of completing by deadline
   min.idx <- which.min(scores[,1])
 
-  attr(assignment, 'score') <- scores[min.idx, 1]
-  attr(assignment, 'deadline') <- deadline
-  attr(assignment, 'runtime95pct') <- scores[min.idx, 2]
-  attr(assignment, 'runtime99pct') <- scores[min.idx, 3]
-  if(debug && num.tasks > bootstrap.threshold) attr(assignment, 'norm.mean') <-
+  attr(schedule, 'score') <- scores[min.idx, 1]
+  attr(schedule, 'processing.cost') <- instance.costs[1] * scores[min.idx, 2]
+  attr(schedule, 'deadline') <- deadline
+  attr(schedule, 'runtime95pct') <- scores[min.idx, 2]
+  attr(schedule, 'runtime99pct') <- scores[min.idx, 3]
+  if(debug && num.tasks > bootstrap.threshold) attr(schedule, 'norm.mean') <-
     job.mean
-  if(debug && num.tasks > bootstrap.threshold) attr(assignment, 'norm.sd') <-
+  if(debug && num.tasks > bootstrap.threshold) attr(schedule, 'norm.sd') <-
       job.sd
-  if(debug && num.tasks <= bootstrap.threshold) attr(assignment, 'boot.dist') <-
+  if(debug && num.tasks <= bootstrap.threshold) attr(schedule, 'boot.dist') <-
     boot.dist
 
-  return (assignment)
+  return (schedule)
 
 } # end function - get.score
 
@@ -1059,7 +1067,7 @@ get.temperature <- function (max.temp, max.iter, cur.iter, method='linear') {
 
 #' Find optimal schedule
 #'
-#' Want an assignment with >= .95 probability of completing job by the deadline
+#' Want an schedule with >= .95 probability of completing job by the deadline
 #' with the lowest makespan (cost)
 #'
 #' @param job Array of integers representing sizes of tasks in job
@@ -1069,15 +1077,15 @@ get.temperature <- function (max.temp, max.iter, cur.iter, method='linear') {
 #' @param cluster.size Integer representing the number of instances
 #' in the cluster
 #' @param max.iter Max number of iterations to use to find the optimal
-#' assignment (integer)
+#' schedule (integer)
 #' @param max.temp Max temperature to use in the simulated annealing
 #' process (flaot)
-#' @param reset.score.pct Begin next iteration from the best assignment if the
+#' @param reset.score.pct Begin next iteration from the best schedule if the
 #' difference between the best score and best score is more than this value
-#' @param reset.num.iters Begin next iteration from the best assignment if the
+#' @param reset.num.iters Begin next iteration from the best schedule if the
 #' number of iterations the score has not been increasing exceeds this value
 #' @param debug Print debug info
-#' @return A list representing the optimal assignment that could be found under
+#' @return A list representing the optimal schedule that could be found under
 #' the given constraints
 #' @export
 #' @examples
@@ -1111,12 +1119,12 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
   runtimes.summary <-
     .get.trainingset.runtimes(cluster.instance.type, summary=T)
 
-	cur.assignment <- get.initial.assignment(cluster.size, job)
-	cur.assignment <-
-    get.score(cur.assignment, runtimes, runtimes.summary, deadline)
+	cur.schedule <- get.initial.schedule(cluster.size, job)
+	cur.schedule <-
+    get.score(cur.schedule, runtimes, runtimes.summary, deadline)
 
-	best.assignment <- cur.assignment
-  best.score <- attr(best.assignment, 'score')
+	best.schedule <- cur.schedule
+  best.score <- attr(best.schedule, 'score')
   if (debug) cat('best score=', best.score, '\n')
 
   if (debug) {
@@ -1127,13 +1135,13 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
 
     scores.timeseries[1,1] <- 1
 
-    scores.timeseries[1,2] <- attr(cur.assignment, 'score')
-    scores.timeseries[1,3] <- attr(cur.assignment, 'runtime95pct')
-    scores.timeseries[1,4] <- attr(cur.assignment, 'runtime99pct')
+    scores.timeseries[1,2] <- attr(cur.schedule, 'score')
+    scores.timeseries[1,3] <- attr(cur.schedule, 'runtime95pct')
+    scores.timeseries[1,4] <- attr(cur.schedule, 'runtime99pct')
 
-    scores.timeseries[1,5] <- attr(best.assignment, 'score')
-    scores.timeseries[1,6] <- attr(best.assignment, 'runtime95pct')
-    scores.timeseries[1,7] <- attr(best.assignment, 'runtime99pct')
+    scores.timeseries[1,5] <- attr(best.schedule, 'score')
+    scores.timeseries[1,6] <- attr(best.schedule, 'runtime95pct')
+    scores.timeseries[1,7] <- attr(best.schedule, 'runtime99pct')
 
     filename.ts <- paste(output.prefix, '-scores-timeseries.csv', sep='')
     conn <- file(filename.ts, open='wt')
@@ -1166,30 +1174,30 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
     if (debug) cat('\n\n==========\nSA iter: ', i, ' (', (i+2), ') \n',
       '==========\n\n', sep='')
 
-		proposed.assignment <- get.neighbor(cur.assignment)
-		cur.assignment <- compare.assignments(cur.assignment, proposed.assignment,
+		proposed.schedule <- get.neighbor(cur.schedule)
+		cur.schedule <- compare.schedules(cur.schedule, proposed.schedule,
         runtimes, runtimes.summary, deadline, max.temp, max.iter, i)
-    cur.score <- attr(cur.assignment, 'score')
+    cur.score <- attr(cur.schedule, 'score')
 
     # update best score, if necessary
     if (cur.score > best.score) {
-      best.assignment <- cur.assignment
-      best.score <- attr(best.assignment, 'score')
-    } # end if - cur assignment better than best assignment so far?
+      best.schedule <- cur.schedule
+      best.score <- attr(best.schedule, 'score')
+    } # end if - cur schedule better than best schedule so far?
 
     if (debug) cat('best score=', best.score, '\n')
 
-    # restart from current best assignment if score of current assignment
+    # restart from current best schedule if score of current schedule
     # is too low
     if (!is.null(reset.score.pct)) {
       if (best.score == 0) best.score = 0.0001
       d <- (best.score - cur.score)
       d.pct <- 100*d/best.score
       if (d.pct > reset.score.pct) {
-        cur.assignment <- best.assignment
-        if (debug) cat('Resetting current assignment to best assignment since
+        cur.schedule <- best.schedule
+        if (debug) cat('Resetting current schedule to best schedule since
           d.pct=', d.pct, '. Best score so far = ', best.score, '\n', sep='')
-      } # end if - reset current assignment to best assignment
+      } # end if - reset current schedule to best schedule
     } # end if - reset.score.pct defined?
 
 
@@ -1197,13 +1205,13 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
     if (debug) {
       scores.timeseries[(i+2),1] <- (i+2)
 
-      scores.timeseries[(i+2),2] <- attr(cur.assignment, 'score')
-      scores.timeseries[(i+2),3] <- attr(cur.assignment, 'runtime95pct')
-      scores.timeseries[(i+2),4] <- attr(cur.assignment, 'runtime99pct')
+      scores.timeseries[(i+2),2] <- attr(cur.schedule, 'score')
+      scores.timeseries[(i+2),3] <- attr(cur.schedule, 'runtime95pct')
+      scores.timeseries[(i+2),4] <- attr(cur.schedule, 'runtime99pct')
 
-      scores.timeseries[(i+2),5] <- attr(best.assignment, 'score')
-      scores.timeseries[(i+2),6] <- attr(best.assignment, 'runtime95pct')
-      scores.timeseries[(i+2),7] <- attr(best.assignment, 'runtime99pct')
+      scores.timeseries[(i+2),5] <- attr(best.schedule, 'score')
+      scores.timeseries[(i+2),6] <- attr(best.schedule, 'runtime95pct')
+      scores.timeseries[(i+2),7] <- attr(best.schedule, 'runtime99pct')
 
       write.table(t(scores.timeseries[(i+2),]), file=conn, sep=',', quote=FALSE,
         row.names=FALSE, col.names=FALSE, append=TRUE)
@@ -1214,15 +1222,15 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
 
 
   # sort task.sizes in each instance
-  for (i in 1:length(best.assignment)) {
-    best.assignment[[i]] <- sort(best.assignment[[i]], decreasing=TRUE)
+  for (i in 1:length(best.schedule)) {
+    best.schedule[[i]] <- sort(best.schedule[[i]], decreasing=TRUE)
   } # end for - loop over all instance
 
-  if (debug) attr(best.assignment, 'scores.ts') <- scores.timeseries
+  if (debug) attr(best.schedule, 'scores.ts') <- scores.timeseries
 
-	cat('\nBest score: ', attr(best.assignment, 'score'), '\n')
-	cat('Best assignment: \n')
-	print(best.assignment)
+	cat('\nBest score: ', attr(best.schedule, 'score'), '\n')
+	cat('Best schedule: \n')
+	print(best.schedule)
   cat('\n\n')
 
   d <- proc.time()-start.time
@@ -1233,6 +1241,6 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
     close(conn)
   } # end if - debug?
 
-  return (best.assignment)
+  return (best.schedule)
 
 } # end function - schedule
