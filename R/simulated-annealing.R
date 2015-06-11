@@ -1011,11 +1011,12 @@ get.score <- function (schedule, runtimes, runtimes.summary, deadline, debug=FAL
 
   } # end for - loop over all instances in schedule
 
-  # Return score & times of instance with least prob of completing by deadline
+  # Return score of instance with least prob of completing by deadline
+  # This determines the feasibility of the schedule
   min.idx <- which.min(scores[,1])
 
   attr(schedule, 'score') <- scores[min.idx, 1]
-  attr(schedule, 'processing.cost') <- sum(processing.cost)
+  attr(schedule, 'processing.cost') <- sum(processing.cost, na.rm=TRUE)
   attr(schedule, 'deadline') <- deadline
   attr(schedule, 'runtime95pct') <- scores[min.idx, 2]
   attr(schedule, 'runtime99pct') <- scores[min.idx, 3]
@@ -1111,12 +1112,6 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
   if (!is.null(reset.score.pct)) .check.if.positive.real(reset.score.pct)
   if (!is.null(reset.num.iters)) .check.if.positive.integer(reset.num.iters)
 
-  if (debug) {
-    output.prefix <- paste(cluster.size, '-inst-', length(job), '-tasks-',
-      max.iter, '-SAiter-', num.bootstrap.reps, '-BSreps', sep='')
-    filename <- filename <- paste(output.prefix, '.output.txt', sep='')
-    sink(filename)
-  }
 
   runtimes <- .get.trainingset.runtimes(cluster.instance.type)
   runtimes.summary <-
@@ -1128,6 +1123,14 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
 
 	best.schedule <- cur.schedule
   best.processing.cost <- attr(best.schedule, 'processing.cost')
+
+  if (debug) {
+    output.prefix <- paste(cluster.size, '-inst-', length(job), '-tasks-',
+      max.iter, '-SAiter-', num.bootstrap.reps, '-BSreps', sep='')
+    filename <- filename <- paste(output.prefix, '.output.txt', sep='')
+    sink(filename)
+  }
+
   if (debug) cat('best processing.cost=', best.processing.cost, '\n')
 
   if (debug) {
