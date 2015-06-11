@@ -882,14 +882,12 @@ compare.schedules <- function (cur.schedule, proposed.schedule, runtimes,
   cat('\n')
 
   # reject all schedules that are not feasible
-  if (attr(proposed.schedule, 'score') > 0.95) {
+  if (attr(proposed.schedule, 'score') < 0.95) {
     return(cur.schedule)
   }
 
 	if (attr(proposed.schedule, 'processing.cost') <= attr(cur.schedule, 'processing.cost')) {
     cat('PROPOSED.processing.cost <= current.processing.cost. Returning PROPOSED \n\n')
-    # new schedule has greater or equal prob. of completing job by
-    # deadline than current schedule
     result <- proposed.schedule
 
   } else {
@@ -956,6 +954,7 @@ get.score <- function (schedule, runtimes, runtimes.summary, deadline, debug=FAL
 
   num.instances <- length(schedule)
   scores <- matrix(nrow=num.instances, ncol=3)
+  processing.cost <- array(dim=num.instances)
 
   for (i in 1:num.instances) {
 
@@ -992,6 +991,8 @@ get.score <- function (schedule, runtimes, runtimes.summary, deadline, debug=FAL
       scores[i,2] <- round(qnorm(0.95, mean=job.mean, sd=job.sd), 2)
       scores[i,3] <- round(qnorm(0.99, mean=job.mean, sd=job.sd), 2)
 
+      processing.cost[i] <- scores[i,2] * instance.costs[1]
+
     } else {
       # cat('Using boostrap approx. to runtime dist. \n')
       bootstrap.dist <-
@@ -1004,6 +1005,8 @@ get.score <- function (schedule, runtimes, runtimes.summary, deadline, debug=FAL
       scores[i,2] <- round(quantile(bootstrap.dist, 0.95), 2)
       scores[i,3] <- round(quantile(bootstrap.dist, 0.99), 2)
 
+      processing.cost[i] <- scores[i,2] * instance.costs[1]
+
     } # end if - more than bootstrap.threshold tasks?
 
   } # end for - loop over all instances in schedule
@@ -1012,7 +1015,7 @@ get.score <- function (schedule, runtimes, runtimes.summary, deadline, debug=FAL
   min.idx <- which.min(scores[,1])
 
   attr(schedule, 'score') <- scores[min.idx, 1]
-  attr(schedule, 'processing.cost') <- instance.costs[1] * scores[min.idx, 2]
+  attr(schedule, 'processing.cost') <- sum(processing.cost)
   attr(schedule, 'deadline') <- deadline
   attr(schedule, 'runtime95pct') <- scores[min.idx, 2]
   attr(schedule, 'runtime99pct') <- scores[min.idx, 3]
