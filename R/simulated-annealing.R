@@ -1124,24 +1124,24 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
     get.score(cur.schedule, runtimes, runtimes.summary, deadline)
 
 	best.schedule <- cur.schedule
-  best.score <- attr(best.schedule, 'score')
-  if (debug) cat('best score=', best.score, '\n')
+  best.processing.cost <- attr(best.schedule, 'processing.cost')
+  if (debug) cat('best processing.cost=', best.processing.cost, '\n')
 
   if (debug) {
-    scores.timeseries <- matrix(nrow=(max.iter)+1, ncol=7)
-    colnames(scores.timeseries) <-
+    processing.cost.timeseries <- matrix(nrow=(max.iter)+1, ncol=7)
+    colnames(processing.cost.timeseries) <-
       c('Iter', paste('Acpt_', deadline, 's', sep=''), 'Acpt_95%', 'Acpt_99%',
       paste('Best_', deadline, 's', sep=''), 'Best_95%', 'Best_99%')
 
-    scores.timeseries[1,1] <- 1
+    processing.cost.timeseries[1,1] <- 1
 
-    scores.timeseries[1,2] <- attr(cur.schedule, 'score')
-    scores.timeseries[1,3] <- attr(cur.schedule, 'runtime95pct')
-    scores.timeseries[1,4] <- attr(cur.schedule, 'runtime99pct')
+    processing.cost.timeseries[1,2] <- attr(cur.schedule, 'score')
+    processing.cost.timeseries[1,3] <- attr(cur.schedule, 'runtime95pct')
+    processing.cost.timeseries[1,4] <- attr(cur.schedule, 'runtime99pct')
 
-    scores.timeseries[1,5] <- attr(best.schedule, 'score')
-    scores.timeseries[1,6] <- attr(best.schedule, 'runtime95pct')
-    scores.timeseries[1,7] <- attr(best.schedule, 'runtime99pct')
+    processing.cost.timeseries[1,5] <- attr(best.schedule, 'score')
+    processing.cost.timeseries[1,6] <- attr(best.schedule, 'runtime95pct')
+    processing.cost.timeseries[1,7] <- attr(best.schedule, 'runtime99pct')
 
     filename.ts <- paste(output.prefix, '-scores-timeseries.csv', sep='')
     conn <- file(filename.ts, open='wt')
@@ -1161,7 +1161,7 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
         'NULL', reset.num.iters), sep=''), con=conn)
       writeLines(paste('# debug = ', debug, sep=''), con=conn)
 
-      write.table(t(scores.timeseries[1,]), file=conn, sep=',', quote=FALSE,
+      write.table(t(processing.cost.timeseries[1,]), file=conn, sep=',', quote=FALSE,
         row.names=FALSE)
       flush(conn)
   } # end if - debug?
@@ -1180,40 +1180,39 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
     cur.score <- attr(cur.schedule, 'score')
 
     # update best score, if necessary
-    if (cur.score > best.score) {
+    if (cur.processing.cost < best.processing.cost) {
       best.schedule <- cur.schedule
-      best.score <- attr(best.schedule, 'score')
+      best.processing.cost <- attr(best.schedule, 'processing.cost')
     } # end if - cur schedule better than best schedule so far?
 
-    if (debug) cat('best score=', best.score, '\n')
+    if (debug) cat('best processing.cost=', best.processing.cost, '\n')
 
     # restart from current best schedule if score of current schedule
     # is too low
     if (!is.null(reset.score.pct)) {
-      if (best.score == 0) best.score = 0.0001
-      d <- (best.score - cur.score)
-      d.pct <- 100*d/best.score
+      d <- (best.processing.cost - cur.processing.cost)
+      d.pct <- 100*d/best.processing.cost
       if (d.pct > reset.score.pct) {
         cur.schedule <- best.schedule
         if (debug) cat('Resetting current schedule to best schedule since
-          d.pct=', d.pct, '. Best score so far = ', best.score, '\n', sep='')
+          d.pct=', d.pct, '. Best processing.cost so far = ', best.processing.cost, '\n', sep='')
       } # end if - reset current schedule to best schedule
     } # end if - reset.score.pct defined?
 
 
 
     if (debug) {
-      scores.timeseries[(i+2),1] <- (i+2)
+      processing.cost.timeseries[(i+2),1] <- (i+2)
 
-      scores.timeseries[(i+2),2] <- attr(cur.schedule, 'score')
-      scores.timeseries[(i+2),3] <- attr(cur.schedule, 'runtime95pct')
-      scores.timeseries[(i+2),4] <- attr(cur.schedule, 'runtime99pct')
+      processing.cost.timeseries[(i+2),2] <- attr(cur.schedule, 'processing.cost')
+      processing.cost.timeseries[(i+2),3] <- attr(cur.schedule, 'runtime95pct')
+      processing.cost.timeseries[(i+2),4] <- attr(cur.schedule, 'runtime99pct')
 
-      scores.timeseries[(i+2),5] <- attr(best.schedule, 'score')
-      scores.timeseries[(i+2),6] <- attr(best.schedule, 'runtime95pct')
-      scores.timeseries[(i+2),7] <- attr(best.schedule, 'runtime99pct')
+      processing.cost.timeseries[(i+2),5] <- attr(best.schedule, 'processing.cost')
+      processing.cost.timeseries[(i+2),6] <- attr(best.schedule, 'runtime95pct')
+      processing.cost.timeseries[(i+2),7] <- attr(best.schedule, 'runtime99pct')
 
-      write.table(t(scores.timeseries[(i+2),]), file=conn, sep=',', quote=FALSE,
+      write.table(t(processing.cost.timeseries[(i+2),]), file=conn, sep=',', quote=FALSE,
         row.names=FALSE, col.names=FALSE, append=TRUE)
       flush(conn)
     } # end if - debug?
@@ -1226,9 +1225,9 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
     best.schedule[[i]] <- sort(best.schedule[[i]], decreasing=TRUE)
   } # end for - loop over all instance
 
-  if (debug) attr(best.schedule, 'scores.ts') <- scores.timeseries
+  if (debug) attr(best.schedule, 'scores.ts') <- processing.cost.timeseries
 
-	cat('\nBest score: ', attr(best.schedule, 'score'), '\n')
+	cat('\nBest processing.cost: ', attr(best.schedule, 'processing.cost'), '\n')
 	cat('Best schedule: \n')
 	print(best.schedule)
   cat('\n\n')

@@ -324,6 +324,7 @@ test_that("compare.schedules returns a valid value", {
 
   cur.schedule <- get.initial.schedule(1, c(10, 20))
   attr(cur.schedule, 'score') <- 0
+  attr(cur.schedule, 'processing.cost') <- 1
   attr(cur.schedule, 'deadline') <- 100
   attr(cur.schedule, 'runtime95pct') <- 0
   attr(cur.schedule, 'runtime99pct') <- 0
@@ -353,11 +354,13 @@ test_that("compare.schedules returns a valid value", {
   accepted <- compare.schedules(cur.schedule, proposed.schedule, r, rs, deadline, max.temp, max.iter, cur.iter)
   expect_is(accepted, 'list')
   expect_is(attr(accepted, 'score'), 'numeric')
+  expect_is(attr(accepted, 'processing.cost'), 'numeric')
   expect_is(attr(accepted, 'deadline'), 'numeric')
   expect_is(attr(accepted, 'runtime95pct'), 'numeric')
   expect_is(attr(accepted, 'runtime99pct'), 'numeric')
 
   expect_true(attr(accepted, 'score') >= 0 && attr(accepted, 'score') <= 1)
+  expect_true(attr(accepted, 'processing.cost') >= 0
   expect_true(attr(accepted, 'deadline') > 0)
   expect_true(attr(accepted, 'runtime95pct') > 0)
   expect_true(attr(accepted, 'runtime99pct') > 0)
