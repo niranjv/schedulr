@@ -1227,9 +1227,9 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
 
 
   # sort task.sizes in each instance
-  for (i in 1:length(best.schedule)) {
-    best.schedule[[i]] <- sort(best.schedule[[i]], decreasing=TRUE, na.last=NA)
-  } # end for - loop over all instance
+  # for (i in 1:length(best.schedule)) {
+  #   best.schedule[[i]] <- sort(best.schedule[[i]], decreasing=TRUE, na.last=NA)
+  # } # end for - loop over all instance
 
   if (debug) attr(best.schedule, 'scores.ts') <- processing.cost.timeseries
 
