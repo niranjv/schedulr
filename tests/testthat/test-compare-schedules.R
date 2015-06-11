@@ -322,15 +322,6 @@ test_that("compare.schedules returns a valid value", {
   data('m3xlarge.runtimes.expdist')
   setup.trainingset.runtimes('m3xlarge', m3xlarge.runtimes.expdist)
 
-  cur.schedule <- get.initial.schedule(1, c(10, 20))
-  attr(cur.schedule, 'score') <- 0
-  attr(cur.schedule, 'processing.cost') <- 1
-  attr(cur.schedule, 'deadline') <- 100
-  attr(cur.schedule, 'runtime95pct') <- 0
-  attr(cur.schedule, 'runtime99pct') <- 0
-
-  proposed.schedule <- get.initial.schedule(2, c(10, 20))
-
   r <- matrix(nrow=2, ncol=2)
   r[1, 1] <- 10 # size
   r[1, 2] <- 23.5 # runtime for this sample
@@ -350,6 +341,11 @@ test_that("compare.schedules returns a valid value", {
   max.temp <- 25
   max.iter <- 100
   cur.iter <- 1
+
+  cur.schedule <- get.initial.schedule(1, c(10, 20))
+  cur.schedule <- get.score(cur.schedule, r, rs, deadline)
+
+  proposed.schedule <- get.initial.schedule(1, c(10, 20))
 
   accepted <- compare.schedules(cur.schedule, proposed.schedule, r, rs, deadline, max.temp, max.iter, cur.iter)
   expect_is(accepted, 'list')
