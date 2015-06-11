@@ -360,7 +360,7 @@ test_that("compare.schedules returns a valid value", {
   expect_is(attr(accepted, 'runtime99pct'), 'numeric')
 
   expect_true(attr(accepted, 'score') >= 0 && attr(accepted, 'score') <= 1)
-  expect_true(attr(accepted, 'processing.cost') >= 0
+  expect_true(attr(accepted, 'processing.cost') >= 0)
   expect_true(attr(accepted, 'deadline') > 0)
   expect_true(attr(accepted, 'runtime95pct') > 0)
   expect_true(attr(accepted, 'runtime99pct') > 0)
