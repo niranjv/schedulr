@@ -1177,7 +1177,7 @@ schedule <- function (job, deadline, cluster.instance.type, cluster.size,
 		proposed.schedule <- get.neighbor(cur.schedule)
 		cur.schedule <- compare.schedules(cur.schedule, proposed.schedule,
         runtimes, runtimes.summary, deadline, max.temp, max.iter, i)
-    cur.score <- attr(cur.schedule, 'score')
+    cur.processing.cost <- attr(cur.schedule, 'processing.cost')
 
     # update best score, if necessary
     if (cur.processing.cost < best.processing.cost) {
